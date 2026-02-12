@@ -1,2 +1,2 @@
-# design-special-topic-5
-Repo for Schlieren imaging project
+# Design Special Topic 5; Group D
+Schlieren imaging of acoustic properties of a pipe organ.

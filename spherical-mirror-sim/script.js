@@ -28,7 +28,7 @@ const ctx = canvas.getContext("2d")
 const width = canvas.width
 const height = canvas.height
 
-const diameter = 400
+const diameter = 200
 const radiusOfCurvature = 200
 const PI = 3.1415926535
 
@@ -70,8 +70,44 @@ function drawRays() {
 
 	let rayPoints = []
 	for (var angle = -theta; angle <= theta; angle += 2*theta/4) {
-		rayPoints.push([new Point(radiusOfCurvature * Math.cos(angle), radiusOfCurvature * Math.sin(angle)), angle])
+		let p = new Point(radiusOfCurvature * Math.cos(angle), radiusOfCurvature * Math.sin(angle))
+		let source_relative = new Point(p.x - source.x, p.y - source.y)
+
+		//rayPoints.push([new Point(radiusOfCurvature * Math.cos(angle), radiusOfCurvature * Math.sin(angle)), angle])
+
+		doTranslation()
+		ctx.strokeStyle = "yellow" 
+		ctx.beginPath()
+		ctx.moveTo(source.x, source.y)
+		ctx.lineTo(p.x, p.y)
+		ctx.stroke()
+
+		doTranslation()
+		ctx.rotate(angle)
+		ctx.strokeStyle = "blue"
+
+		ctx.beginPath()
+		ctx.moveTo(0, 0)
+		ctx.lineTo(radiusOfCurvature, 0)
+		ctx.stroke()
+
+		doTranslation()
+		ctx.strokeStyle = "green"
+		ctx.beginPath()
+		ctx.transform(
+			Math.cos(2 * angle),  Math.sin(2 * angle), 0,
+			Math.sin(2 * angle), -Math.cos(2 * angle), 0
+		)
+		ctx.moveTo(source.x, source.y)
+		doTranslation()
+		ctx.rotate(angle)
+		ctx.lineTo(radiusOfCurvature, 0)
+		ctx.stroke()
+		
 	}
+	doTranslation()
+
+	return;
 
 	rayPoints.forEach(function ([p, a]) {
 		let delta = new Point(source.x - p.x, source.y - p.y)
@@ -87,14 +123,13 @@ function drawRays() {
 		// draw reflection
 		ctx.strokeStyle = "yellow" 
 		ctx.beginPath()
-		ctx.translate(p.x, p.y)
 		ctx.rotate(a)
-		ctx.moveTo(0, 0)
-		ctx.lineTo(delta.x, -delta.y)
+		ctx.moveTo(source.x, -source.y)
+		ctx.lineTo(radiusOfCurvature, 0)
 		ctx.stroke()
 		doTranslation()
 
-		/*
+		
 		// draw tangent
 		ctx.strokeStyle = "blue" 
 		ctx.beginPath()
@@ -112,7 +147,7 @@ function drawRays() {
 		ctx.lineTo(p.x, p.y)
 		ctx.stroke()
 		doTranslation()
-		*/
+		
 	})
 	
 }

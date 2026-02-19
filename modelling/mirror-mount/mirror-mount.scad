@@ -8,23 +8,22 @@ module slide_hole(radius, length, depth) {
 	}
 }
 
-mirror_radius = 120;
+mirror_radius = 114 / 2;
 mirror_thickness = 14;
 focal_length = 900;
 
 lip_width = 1;
 lip_height = 5;
-housing_width = 20;
+housing_width = 10;
 housing_height = mirror_thickness * 2;
 
-
 stem_length = 150;
-stem_radius = (housing_height + lip_height) / 2.5;
+stem_radius = (housing_height + lip_height) / 4;
 stem_center = (housing_height + lip_height) / 2;
 
-pitch = 50;
-mounting_hole_radius = 5;
-mounting_hole_length = 25;
+pitch = 25;
+mounting_hole_radius = 5 / 2;
+mounting_hole_length = 15;
 base_length = pitch + 2 * mounting_hole_length;
 base_breadth = pitch + 4 * mounting_hole_radius;
 base_thickness = 10;

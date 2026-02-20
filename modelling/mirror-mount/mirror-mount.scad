@@ -13,7 +13,7 @@ mirror_thickness = 14;
 focal_length = 900;
 
 lip_width = 1;
-lip_height = 5;
+lip_height = 2;
 housing_width = 10;
 housing_height = mirror_thickness * 2;
 
@@ -32,7 +32,7 @@ base_thickness = 10;
 difference () {
 	sphere_radius = 2 * focal_length;
 	sphere_offset = sphere_radius - sqrt(sphere_radius^2 - (mirror_radius)^2);
-	cylinder(mirror_thickness, mirror_radius, mirror_radius);
+	cylinder(sphere_offset, mirror_radius, mirror_radius);
 	translate([0, 0, sphere_radius + mirror_thickness - sphere_offset])
 		sphere(sphere_radius);
 };

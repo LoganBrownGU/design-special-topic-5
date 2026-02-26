@@ -13,6 +13,9 @@ module housing() {
 	difference () {
 		cylinder(housing_height, mirror_radius + housing_width, mirror_radius + housing_width);
 
+		// stem hole
+		translate([-stem_width / 2, -mirror_radius - housing_width, (housing_height - stem_width) / 2]) cube([stem_width, stem_offset, stem_width]); 
+
 		// central hole
 		cylinder(housing_height, mirror_radius, mirror_radius);
 

@@ -1,4 +1,7 @@
-$fn = 300;
+$fn = $preview ? 32 : 128;
+tap_fn = $preview ? 16 : 64;
+
+use <threadlib/threadlib.scad>
 
 module slide_hole(radius, length, depth) {
 	translate([-radius, -length / 2 + radius, 0]) union () {
@@ -16,6 +19,10 @@ lip_width = 1;
 lip_height = 2;
 housing_width = 10;
 housing_height = mirror_thickness * 2;
+
+tapped_hole_offset = mirror_radius + housing_width / 2;
+tap_depth = 10;
+tap_turns = 10 / 0.8;
 
 stem_length = 150;
 stem_radius = (housing_height + lip_height) / 4;
@@ -40,14 +47,28 @@ difference () {
 // housing
 difference () {
 	cylinder(housing_height, mirror_radius + housing_width, mirror_radius + housing_width);
+
+	// central hole
 	cylinder(housing_height, mirror_radius, mirror_radius);
+
+	// tap holes
+	rotate([180, 0, 0]) {
+		translate([ tapped_hole_offset, 0, -housing_height]) tap("M5", turns=tap_turns, fn=tap_fn);
+		translate([-tapped_hole_offset, 0, -housing_height]) tap("M5", turns=tap_turns, fn=tap_fn);
+	}
 };
 
 // lip
-translate([0, 0, housing_height]) {
+translate([0, 0, housing_height + 10]) {
 	difference () {
 		cylinder(lip_height, mirror_radius + housing_width, mirror_radius + housing_width);
+	
+	// central hole
 		cylinder(lip_height, mirror_radius - lip_width, mirror_radius - lip_width);
+		// bolt holes
+		translate([tapped_hole_offset, 0, 0]) cylinder(lip_height, mounting_hole_radius, mounting_hole_radius);
+		translate([-tapped_hole_offset, 0, 0]) cylinder(lip_height, mounting_hole_radius, mounting_hole_radius);
+
 	};
 };
 

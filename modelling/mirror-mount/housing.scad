@@ -18,9 +18,14 @@ module housing() {
 
 		// tap holes
 		rotate([180, 0, 0]) {
-			translate([ tapped_hole_offset, 0, -housing_height]) tap("M5", turns=tap_turns, fn=tap_fn);
-			translate([-tapped_hole_offset, 0, -housing_height]) tap("M5", turns=tap_turns, fn=tap_fn);
-		}
+			if ($preview) {
+				translate([ tapped_hole_offset, 0, -housing_height]) cylinder(10, 2.5, 2.5); 
+				translate([-tapped_hole_offset, 0, -housing_height]) cylinder(10, 2.5, 2.5); 
+			} else {
+				translate([ tapped_hole_offset, 0, -housing_height]) tap("M5", turns=tap_turns, fn=tap_fn);
+				translate([-tapped_hole_offset, 0, -housing_height]) tap("M5", turns=tap_turns, fn=tap_fn);
+				}
+			}
 	};
 
 }

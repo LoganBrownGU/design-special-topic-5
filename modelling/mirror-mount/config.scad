@@ -1,3 +1,6 @@
+$fn = $preview ? 32 : 256;
+tap_fn = $preview ? 16 : 64;
+
 pitch = 25;
 
 mirror_radius = 130 / 2;

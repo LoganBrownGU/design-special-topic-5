@@ -1,3 +1,5 @@
+include <config.scad>
+
 // lip
 module lip() {
 	difference () {
@@ -12,4 +14,6 @@ module lip() {
 	};
 };
 
+
+lip();
 

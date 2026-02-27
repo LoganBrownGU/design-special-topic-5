@@ -1,4 +1,6 @@
-module slide_hole(radius, length, depth) {
+include <config.scad>
+
+module slide_hole(radius, length, depth) { 
 	translate([-radius, -length / 2 + radius, 0]) union () {
 		cube([radius * 2, length - 2 * radius, depth]);
 		translate([radius, 0, 0]) cylinder(depth, radius, radius);
@@ -33,3 +35,4 @@ module base() {
 	}
 }
 
+base();

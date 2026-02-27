@@ -1,3 +1,5 @@
+use <threadlib/threadlib.scad>
+include <config.scad>
 
 module housing() {
 	// curved back
@@ -32,3 +34,5 @@ module housing() {
 	};
 
 }
+
+housing();

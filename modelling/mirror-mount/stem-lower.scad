@@ -1,3 +1,6 @@
+use <threadlib/threadlib.scad>
+include <config.scad>
+
 module stem_outer() {
 	difference() {
 		cube([stem_width + stem_outer_thickness, stem_width + stem_outer_thickness, stem_length / 2]);
@@ -19,4 +22,5 @@ module stem_lower() {
 	}
 };
 
+stem_lower();
 

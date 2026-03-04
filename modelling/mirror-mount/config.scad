@@ -21,3 +21,5 @@ stand_height = 55;
 base_thickness = frame_height;
 base_length = 180;
 base_width = triangle_points(mount_point_distance + frame_side_length_diff)[1][0] * 2;
+
+inset_depth = 0.5;

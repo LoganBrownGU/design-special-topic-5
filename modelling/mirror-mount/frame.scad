@@ -1,4 +1,5 @@
 include <config.scad>
+use <spring-fitting.scad>
 
 module frame_triangle_inner() {
 	side_length = mount_point_distance - frame_side_length_diff;
@@ -10,12 +11,7 @@ module frame_triangle_outer() {
 	polygon(points = triangle_points(side_length));
 }
 
-module spring_fitting() {
-	union () {
-		cylinder(1.3, 6.5, 6.5);
-		cylinder(1.3 + 2.6, 4.5, 4.5);
-	}
-}
+
 
 module base_frame() {
 	linear_extrude(frame_height) difference () {
@@ -37,18 +33,12 @@ module frame() { union () {
 	difference() {
 		base_frame();
 		for (point = mounting_points) {
-			translate(point) spring_fitting(); 
-		}
-	}
-
-	for (point = mounting_points) {
-		translate(point) translate([0, 0, frame_height]) {
-			difference() {
+			translate(point) {
 				spring_fitting(); 
-				cylinder(1.3 + 2.6, mount_hole_diameter / 2, mount_hole_diameter / 2);
 			}
 		}
 	}
+
 
 	
 	stand_width = mount_point_distance + (frame_width * cos(30) / cos(60));

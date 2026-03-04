@@ -58,8 +58,16 @@ module frame() { union () {
 
 	
 	stand_width = mount_point_distance + (frame_width * cos(30) / cos(60));
-	translate([-stand_width / 2, mounting_points[1][1] - stand_height - frame_width / 2]) 
-		linear_extrude(frame_height) { square(stand_width, stand_height); }
+	cutout_width = stand_width / 2;
+	cutout_height = stand_height / 2;
+	translate([-stand_width / 2, mounting_points[1][1] - stand_height - frame_width / 2]) { 
+		linear_extrude(frame_height) { difference () {
+			square([stand_width, stand_height]); 
+			translate([stand_width / 2 - cutout_width / 2, 0]) square([cutout_width, cutout_height]);
+		}}
+	}
+
+
 }}
 
 frame();

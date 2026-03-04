@@ -7,4 +7,4 @@ mount_hole_diameter = 5;
 
 frame_width = 25;
 frame_height = 16.5 / 2;
-stand_height = 20;
+stand_height = 50;

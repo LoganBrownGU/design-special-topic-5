@@ -1,12 +1,13 @@
 
 include <config.scad>
 use <frame.scad>
+use <base.scad>
 
 module parts() {
 
-    frame();
+	translate([100, 0]) frame();
+	translate([-100, 0]) base();
 
-	translate([-128, -128]) % square([256, 256]);
 }
 
 parts();

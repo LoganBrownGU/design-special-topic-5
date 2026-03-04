@@ -1,18 +1,12 @@
 include <config.scad>
 
-function triangle_points(side_length) = [
-	[-side_length / 2, -side_length * tan(30) / 2],
-	[side_length / 2, -side_length * tan(30) / 2],
-	[0, side_length / (2 * cos(30))],
-];
-
 module frame_triangle_inner() {
-	side_length = mount_point_distance - (frame_width * cos(30) / cos(60));
+	side_length = mount_point_distance - frame_side_length_diff;
 	polygon(points = triangle_points(side_length));
 }
 
 module frame_triangle_outer() {
-	side_length = mount_point_distance + (frame_width * cos(30) / cos(60));
+	side_length = mount_point_distance + frame_side_length_diff;
 	polygon(points = triangle_points(side_length));
 }
 

@@ -10,8 +10,8 @@ function triangle_points(side_length) = [
 
 pitch = 25;
 
-mount_point_distance = 115.5;
-mount_hole_diameter = 5; 
+mount_point_distance = 116;
+mount_hole_diameter = 6; 
 
 frame_width = 25;
 frame_height = 16.5 / 2;

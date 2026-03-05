@@ -18,6 +18,10 @@ module hole() {
 module base() { translate([-base_width / 2, 0]) {
 	difference () {
 		cube([base_width + 10, base_length, base_thickness]);
+		
+		translate([base_width / 2 - pitch, 0]) 
+			cube([pitch * 2, pitch * 5, base_thickness]);
+
 		translate([5, base_length - 30, base_thickness / 2]) 
 			cube([base_width, frame_height, base_thickness / 2]);
 

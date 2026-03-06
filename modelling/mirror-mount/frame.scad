@@ -39,8 +39,6 @@ module frame() { union () {
 		}
 	}
 	
-	cutout_width = stand_width / 1.7;
-	cutout_height = stand_height / 1.2;
 	translate([-stand_width / 2, mounting_points[1][1] - stand_height - frame_width / 2]) { 
 		linear_extrude(frame_height) { difference () {
 			square([stand_width, stand_height]); 

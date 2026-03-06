@@ -18,6 +18,9 @@ frame_height = 16.5 / 2;
 frame_side_length_diff = frame_width * cos(30) / cos(60);
 stand_width = mount_point_distance + (frame_width * cos(30) / cos(60));
 stand_height = 55;
+cutout_width = stand_width / 1.7;
+cutout_height = stand_height / 1.2;
+
 
 base_thickness = frame_height;
 base_width = stand_width + frame_height * 2;

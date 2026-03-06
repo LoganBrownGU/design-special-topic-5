@@ -47,8 +47,8 @@ module base_half() {
 
 		translate([mount_hole_centre, main_base_length + base_leg_extent / 2]) hole();
 
-		translate([0, main_base_length / 2 - frame_height / 2, base_thickness / 2]) 
-			cube([stand_width / 2, frame_height, base_thickness / 2]);
+		translate([stand_width, main_base_length / 2 - frame_height / 2, base_thickness / 2]) 
+			cube([(stand_width - cutout_width) / 2, frame_height, base_thickness / 2]);
 	}
 }
 

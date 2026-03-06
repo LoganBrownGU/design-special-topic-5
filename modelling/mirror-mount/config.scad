@@ -16,10 +16,15 @@ mount_hole_diameter = 6;
 frame_width = 25;
 frame_height = 16.5 / 2;
 frame_side_length_diff = frame_width * cos(30) / cos(60);
+stand_width = mount_point_distance + (frame_width * cos(30) / cos(60));
 stand_height = 55;
 
 base_thickness = frame_height;
-base_length = 180;
-base_width = triangle_points(mount_point_distance + frame_side_length_diff)[1][0] * 2;
+base_width = stand_width + frame_height * 2;
+base_leg_extent = 120;
+base_leg_width  = 4 * mount_hole_diameter;
+mount_hole_centre = 2 * pitch;
+hole_length = base_leg_extent / 1.2;
+main_base_length = 3.5 * frame_height;
 
 inset_depth = 0.5;

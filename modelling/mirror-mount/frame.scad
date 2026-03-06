@@ -39,7 +39,6 @@ module frame() { union () {
 		}
 	}
 	
-	stand_width = mount_point_distance + (frame_width * cos(30) / cos(60));
 	cutout_width = stand_width / 1.7;
 	cutout_height = stand_height / 1.2;
 	translate([-stand_width / 2, mounting_points[1][1] - stand_height - frame_width / 2]) { 
@@ -54,6 +53,8 @@ module frame() { union () {
 		translate([cutout_width / 2, 0]) cube([(stand_width - cutout_width) / 2, 5, frame_height + 7]);
 	}
 
+	translate([-40, -50, frame_height]) scale(0.8) 
+		linear_extrude(1) text("this side forward");
 
 }}
 

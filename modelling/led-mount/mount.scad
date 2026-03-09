@@ -14,9 +14,9 @@ module frame() {
 		}
 
 		translate([frame_width - frame_thickness / 2, frame_height / 2, 0])
-			cylinder(frame_depth - 1, (frame_thickness - 1) / 2, (frame_thickness - 1) / 2);
+			cylinder(frame_depth - 1, (frame_thickness - 0.5) / 2, (frame_thickness - 0.5) / 2);
 		translate([frame_thickness / 2, frame_height / 2, 0])
-			cylinder(frame_depth - 1, (frame_thickness - 1) / 2, (frame_thickness - 1) / 2);
+			cylinder(frame_depth - 1, (frame_thickness - 0.5) / 2, (frame_thickness - 0.5) / 2);
 
 	}
 }

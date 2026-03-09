@@ -29,5 +29,7 @@ base_leg_width  = 4 * mount_hole_diameter;
 mount_hole_centre = 2 * pitch;
 hole_length = base_leg_extent / 1.2;
 main_base_length = 3.5 * frame_height;
+sleeve_thickness = 5;
+sleeve_height = 15;
 
 inset_depth = 0.5;

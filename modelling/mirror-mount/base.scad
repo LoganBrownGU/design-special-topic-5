@@ -21,35 +21,42 @@ module base_half() {
 	chamfer = 5;
 
 	difference() {
-		linear_extrude(base_thickness) {
-			polygon(points=[
-				[0, 0],
-				[base_width / 2 - chamfer, 0],
-				[base_width / 2, chamfer],
-				[base_width / 2, main_base_length - chamfer],
-				[base_width / 2 - chamfer, main_base_length],
-				[0, main_base_length],
-			]);
-
-			translate([0, main_base_length]) {
+		union() { 
+			linear_extrude(base_thickness) {
 				polygon(points=[
-					[mount_hole_centre - base_leg_width / 2 - chamfer, 0],
-					[mount_hole_centre - base_leg_width / 2,           chamfer],
-					[mount_hole_centre - base_leg_width / 2,           base_leg_extent - chamfer],
-					[mount_hole_centre - base_leg_width / 2 + chamfer, base_leg_extent],
-					[mount_hole_centre + base_leg_width / 2 - chamfer, base_leg_extent],
-					[mount_hole_centre + base_leg_width / 2, 	   base_leg_extent - chamfer],
-					[mount_hole_centre + base_leg_width / 2,           chamfer],
-					[mount_hole_centre + base_leg_width / 2 + chamfer, 0],
+					[0, 0],
+					[base_width / 2 - chamfer, 0],
+					[base_width / 2, chamfer],
+					[base_width / 2, main_base_length - chamfer],
+					[base_width / 2 - chamfer, main_base_length],
+					[0, main_base_length],
 				]);
+
+				translate([0, main_base_length]) {
+					polygon(points=[
+						[mount_hole_centre - base_leg_width / 2 - chamfer, 0],
+						[mount_hole_centre - base_leg_width / 2,           chamfer],
+						[mount_hole_centre - base_leg_width / 2,           base_leg_extent - chamfer],
+						[mount_hole_centre - base_leg_width / 2 + chamfer, base_leg_extent],
+						[mount_hole_centre + base_leg_width / 2 - chamfer, base_leg_extent],
+						[mount_hole_centre + base_leg_width / 2, 	   base_leg_extent - chamfer],
+						[mount_hole_centre + base_leg_width / 2,           chamfer],
+						[mount_hole_centre + base_leg_width / 2 + chamfer, 0],
+					]);
+				}
 			}
+			
+			translate([cutout_width / 2 - sleeve_thickness, main_base_length / 2 - frame_height / 2 - sleeve_thickness, base_thickness / 2])
+				cube([(stand_width - cutout_width) / 2 + sleeve_thickness * 2, sleeve_thickness * 2 + frame_height, sleeve_height]);
 		}
 
 		translate([mount_hole_centre, main_base_length + base_leg_extent / 2]) hole();
 
-		translate([stand_width, main_base_length / 2 - frame_height / 2, base_thickness / 2]) 
-			cube([(stand_width - cutout_width) / 2, frame_height, base_thickness / 2]);
+		translate([cutout_width / 2, main_base_length / 2 - frame_height / 2, base_thickness / 2]) 
+			cube([(stand_width - cutout_width) / 2, frame_height, base_thickness + sleeve_height]);
 	}
+
+
 }
 
 module base() { 

@@ -1,9 +1,9 @@
 include <config.scad>
 
 module frame() { 
-	translate([frame_width / 2 - 2.5, frame_height]) difference() {
-		 cube([5, 5, 5]);
-		 translate([2.5, 1, 2.5]) rotate([-90, 0, 0]) 
+	translate([frame_width / 2 - bolt_hole_radius * 1.5, frame_height]) difference() {
+		 cube([bolt_hole_radius * 3, 5, frame_depth]);
+		 translate([bolt_hole_radius * 1.5, 1, frame_depth / 2]) rotate([-90, 0, 0]) 
 			cylinder(4, bolt_hole_radius, bolt_hole_radius);
 	}
 
@@ -14,19 +14,19 @@ module frame() {
 		}
 
 		translate([frame_width - frame_thickness / 2, frame_height / 2, 0])
-			cylinder(frame_depth - 1, (frame_thickness - 0.5) / 2, (frame_thickness - 0.5) / 2);
+			cylinder(frame_depth - 1, clip_hole_radius, clip_hole_radius);
 		translate([frame_thickness / 2, frame_height / 2, 0])
-			cylinder(frame_depth - 1, (frame_thickness - 0.5) / 2, (frame_thickness - 0.5) / 2);
+			cylinder(frame_depth - 1, clip_hole_radius, clip_hole_radius);
 
 	}
 }
 
 module clip() {
-	linear_extrude(2) square([frame_width, frame_thickness - 1]);
-	translate([frame_width - frame_thickness / 2, (frame_thickness - 1) / 2, 0])
-		cylinder(frame_depth - 1 + 4, (frame_thickness - 1) / 2, (frame_thickness - 1) / 2);
-	translate([frame_thickness / 2, (frame_thickness - 1) / 2, 0])
-		cylinder(frame_depth - 1 + 4, (frame_thickness - 1) / 2, (frame_thickness - 1) / 2);
+	linear_extrude(2) square([frame_width, frame_thickness]);
+	translate([frame_width - frame_thickness / 2, frame_thickness / 2, 0])
+		cylinder(frame_depth - 1 + 4, clip_rod_radius, clip_rod_radius);
+	translate([frame_thickness / 2, clip_hole_radius, 0])
+		cylinder(frame_depth - 1 + 4, clip_rod_radius, clip_rod_radius);
 
 }
 

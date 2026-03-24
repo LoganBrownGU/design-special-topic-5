@@ -20,6 +20,7 @@ module base_frame() {
 
 		// mounting holes
 		mounting_points = triangle_points(mount_point_distance);
+		echo(abs(mounting_points[0][1] - mounting_points[2][1]) / 2 + stand_height + base_thickness / 2);
 		for (point = mounting_points) {
 			translate(point) circle(d = mount_hole_diameter);
 		}
@@ -30,7 +31,12 @@ module base_frame() {
 module frame() { union () {
 
 	mounting_points = triangle_points(mount_point_distance);
-	base_frame();
+	difference() {
+		base_frame();
+		for (point = mounting_points) {
+			translate(point) cylinder(frame_height / 3, 4.25, 4.25);
+		}
+	}
 
 	for (point = mounting_points) {
 		translate(point) translate([0, 0, frame_height]) difference() {
@@ -39,17 +45,13 @@ module frame() { union () {
 		}
 	}
 	
-	translate([-stand_width / 2, mounting_points[1][1] - stand_height - frame_width / 2]) { 
+	translate([-stand_width / 2, mounting_points[1][1] - stand_height - frame_width / 2 - sleeve_height]) { 
 		linear_extrude(frame_height) { difference () {
-			square([stand_width, stand_height]); 
+			square([stand_width, stand_height + sleeve_height]); 
 			translate([stand_width / 2 - cutout_width / 2, 0]) square([cutout_width, cutout_height]);
 		}}
 	}
 
-	translate([0, mounting_points[1][1] - stand_height - frame_width / 2 + base_thickness / 2]) {
-		translate([-stand_width / 2, 0]) cube([(stand_width - cutout_width) / 2, 5, frame_height + 7]);
-		translate([cutout_width / 2, 0]) cube([(stand_width - cutout_width) / 2, 5, frame_height + 7]);
-	}
 
 	translate([-40, -50, frame_height]) scale(0.8) 
 		linear_extrude(1) text("this side forward");

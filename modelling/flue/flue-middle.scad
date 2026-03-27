@@ -19,34 +19,38 @@ module clip_male() {
 } 
 
 module flue_posts() {
-    difference() {
-        cube([slide_mount_width, slide_mount_width, window_post_height + clip_depth * 3], true);
-        cube([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness, window_post_height + clip_depth * 3], true);
-            
-        translate([0, 0, 2 * clip_depth]) {
-            cube([slide_mount_width, slide_mount_width - 2 * slide_mount_wall_thickness, window_post_height ], true);
-            cube([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width, window_post_height ], true);
-        }
+    linear_extrude(slide_height - 2 * slide_rails_depth) difference() {
+        translate([-slide_mount_width / 2, -slide_mount_width / 2]) square([slide_mount_width, slide_mount_wall_thickness]);
     }
 }
+
+module slide_rails() {
+    difference() {
+        linear_extrude(slide_rails_height) difference() {
+            square([slide_mount_width, slide_mount_width], true);
+            square([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness], true);
+        } 
+        
+        translate([0, 0, slide_rails_height - slide_rails_depth]) linear_extrude(slide_rails_depth) {
+            x_offset = slide_mount_width / 2 - slide_mount_wall_thickness / 2; 
+            y_offset = slide_mount_wall_thickness - (slide_mount_width - slide_length) / 2;
+            translate([x_offset,  y_offset, 0]) square([slide_thickness, slide_length], true);
+            translate([-x_offset, y_offset, 0]) square([slide_thickness, slide_length], true);
+        }
+    }
+   
+} 
 
 module flue_middle() {
     rotate([180, 0, 0]) clip_male();
 
-    difference() {
-        translate([0, 0, (window_post_height + clip_depth * 3) / 2]) flue_posts(); 
-        translate([0, 0, clip_depth * 2]) { 
-            translate([-slide_length / 2, slide_mount_width / 2]) rotate([90, 0, 0]) slide(); 
-            translate([-slide_length / 2, -slide_mount_width / 2 + slide_thickness]) rotate([90, 0, 0]) slide(); 
-            translate([-slide_mount_width / 2, -slide_length / 2]) rotate([90, 0, 90]) slide(); 
-            translate([slide_mount_width / 2 - slide_thickness, -slide_length / 2]) rotate([90, 0, 90]) slide(); 
-        }
-    }
+    slide_rails();
+    translate([0, 0, slide_rails_height]) flue_posts(); 
     
-    translate([0, 0, window_post_height + clip_depth * 2]) intersection () {
-        clip_male();
-        flue_posts(); 
-    }
+    // translate([0, 0, window_post_height + clip_depth * 2]) intersection () {
+    //     clip_male();
+    //     flue_posts(); 
+    // }
 }
 
 flue_middle();

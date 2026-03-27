@@ -23,6 +23,8 @@ flue_floor_thickness = slide_mount_wall_thickness;
 flue_slit_depth = 1;
 flue_slit_offset = 5;
 
+window_post_width = 2;
+window_post_height = slide_height + clip_depth;
 
 thread_size = "M42";
 thread_turns = 2;

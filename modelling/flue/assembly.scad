@@ -2,8 +2,8 @@ include <config.scad>
 
 use <blower-mount.scad>
 use <lip.scad>
-use <slide-mount-lower.scad>
+use <flue-lower.scad>
 use <upper.scad>
 
-// blower_mount();
-slide_mount_lower();
+translate([0, 0, -50]) blower_mount();
+flue_lower();

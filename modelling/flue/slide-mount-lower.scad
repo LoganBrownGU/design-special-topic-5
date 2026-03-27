@@ -13,14 +13,25 @@ module slide_mount_thread() {
     }
 } 
 
+module flue_lower() {
+    translate([0, 0, (flue_taper_into_slit + flue_floor_thickness) / 2]) 
+        cube([slide_mount_width, slide_mount_width, flue_taper_into_slit + flue_floor_thickness], true);
+        
+    width = slide_mount_width - 2 * clip_depth - 2 * slide_mount_wall_thickness;
+    translate([0, 0, flue_taper_into_slit + flue_floor_thickness + clip_depth / 2])
+        cube([width, width, clip_depth], true);
+    translate([0, 0, flue_taper_into_slit + flue_floor_thickness + clip_depth * 1.5])
+        cube([width + 2 * clip_depth, width + 2 * clip_depth, clip_depth], true);
+}
+
 module flue_taper() {
 
     difference() {
-        translate([-slide_mount_width / 2, -slide_mount_width / 2]) cube([slide_mount_width, slide_mount_width, flue_taper_into_slit]);
+        flue_lower();
         hull () {
             translate([0, 0, -0.5]) linear_extrude(1) circle(blower_inset_radius);
             translate([-flue_slit_length / 2, -slide_mount_width / 2 + flue_slit_offset, flue_taper_into_slit])
-                linear_extrude(flue_floor_thickness)  square([flue_slit_length, flue_slit_depth]);
+                linear_extrude(flue_floor_thickness + clip_depth * 2)  square([flue_slit_length, flue_slit_depth]);
         }
     }
 }
@@ -28,6 +39,8 @@ module flue_taper() {
 module slide_mount_lower() {
     rotate([180, 0, 0]) slide_mount_thread();
     flue_taper(); 
+    
+    
 }
 
 slide_mount_lower();

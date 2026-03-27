@@ -1,22 +1,6 @@
 include <config.scad>
 use <slide.scad>
-
-module clip_male() {
-    linear_extrude(clip_depth) difference()  {
-        square([slide_mount_width, slide_mount_width], true);
-        square([slide_mount_width - 4 * clip_depth, slide_mount_width - 4 * clip_depth], true);
-    }
-    
-    translate([0, 0, clip_depth]) linear_extrude(clip_depth) difference()  {
-            square([slide_mount_width, slide_mount_width], true);
-            square([slide_mount_width - 2 * clip_depth, slide_mount_width - 2 * clip_depth], true);
-    }
-    
-    translate([0, 0, clip_depth * 2]) linear_extrude(clip_depth) difference()  {
-        square([slide_mount_width, slide_mount_width], true);
-        square([slide_mount_width - 4 * clip_depth, slide_mount_width - 4 * clip_depth], true);
-    }
-} 
+use <clip.scad>
 
 module flue_posts() {
     linear_extrude(slide_height - 2 * slide_rails_depth) difference() {
@@ -42,7 +26,7 @@ module slide_rails() {
 } 
 
 module flue_middle() {
-    rotate([180, 0, 0]) clip_male();
+    rotate([180, 0, 0]) clip_outer(clip_depth, slide_mount_width, slide_mount_width);
 
     slide_rails();
     translate([0, 0, slide_rails_height]) flue_posts(); 

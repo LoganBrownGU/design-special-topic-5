@@ -1,7 +1,34 @@
-module clip_inner() {
+module clip_outer(clip_depth, width, breadth) {
+    assert(width > 4 * clip_depth, "width must be greater than 4 * clip_depth");
+    assert(breadth > 4 * clip_depth, "breadth must be greater than 4 * clip_depth");
+
+    linear_extrude(clip_depth) difference()  {
+        square([width, breadth], true);
+        square([width - 4 * clip_depth, breadth - 4 * clip_depth], true);
+    }
     
+    translate([0, 0, clip_depth]) linear_extrude(clip_depth) difference()  {
+            square([width, breadth], true);
+            square([width - 2 * clip_depth, breadth - 2 * clip_depth], true);
+    }
+    
+    translate([0, 0, clip_depth * 2]) linear_extrude(clip_depth) difference()  {
+        square([width, breadth], true);
+        square([width - 4 * clip_depth, breadth - 4 * clip_depth], true);
+    }
 }
 
-module clip_outer() {
 
+module clip_inner(clip_depth, width, breadth) {
+    assert(width > 4 * clip_depth, "width must be greater than 4 * clip_depth");
+    assert(breadth > 4 * clip_depth, "breadth must be greater than 4 * clip_depth");
+
+    linear_extrude(clip_depth) 
+        square([width, breadth], true);
+    
+    translate([0, 0, clip_depth]) linear_extrude(clip_depth) 
+        square([width - 4 * clip_depth, breadth - 4 * clip_depth], true); 
+        
+    translate([0, 0, clip_depth * 2]) linear_extrude(clip_depth)
+        square([width - 2 * clip_depth, breadth - 2 * clip_depth], true);
 }

@@ -3,11 +3,11 @@ use <slide.scad>
 use <clip.scad>
 
 module flue_posts() {
-    linear_extrude(slide_height - 2 * slide_rails_depth) {
+    linear_extrude(flue_post_height) {
         translate([-slide_mount_width / 2, -slide_mount_width / 2]) square([slide_mount_width, slide_mount_wall_thickness]);
     }
     
-    translate([0, (-slide_mount_width + slide_mount_wall_thickness) / 2, slide_height - 2 * slide_rails_depth]) 
+    translate([0, (-slide_mount_width + slide_mount_wall_thickness) / 2, flue_post_height]) 
         clip_inner(clip_depth, slide_mount_width, slide_mount_wall_thickness);
 }
 

@@ -29,6 +29,7 @@ flue_lip_length = flue_upper_height + 15;
 flue_lip_thickness = 2;
 flue_lip_breadth = slide_mount_width - slide_mount_wall_thickness; 
 flue_lip_rail_thickness = (slide_mount_width - flue_lip_breadth) / 2;
+flue_post_height = slide_height - 2 * slide_rails_depth + 4 * clip_depth;
 
 nut_depth = 2.3;
 nut_width = 6;

@@ -3,6 +3,7 @@ include <config.scad>
 use <clip.scad>
 use <hexagon.scad>
 
+
 module pipe_interface_int() {
     hull() {
         linear_extrude(1) 
@@ -35,12 +36,12 @@ module pipe_interface() {
 
 module flue_posts() {
     wall_center = (slide_mount_width - slide_mount_wall_thickness) / 2;
-    rotate([0, 180, 0]) linear_extrude(slide_height) translate([0, wall_center]) { 
+    rotate([0, 180, 0]) linear_extrude(flue_post_height) translate([0, wall_center]) { 
         translate([ wall_center, 0]) square([slide_mount_wall_thickness, slide_mount_wall_thickness], true); 
         translate([-wall_center, 0]) square([slide_mount_wall_thickness, slide_mount_wall_thickness], true); 
     } 
     
-    rotate([0, 180, 0]) translate([0, wall_center, slide_height]) { 
+    rotate([0, 180, 0]) translate([0, wall_center, flue_post_height]) { 
         translate([ wall_center, 0]) 
             clip_outer(clip_depth, slide_mount_wall_thickness, slide_mount_wall_thickness);
         translate([-wall_center, 0]) 
@@ -49,7 +50,7 @@ module flue_posts() {
 }
 
 module flue_rail() {
-    length = slide_height + flue_upper_height;
+    length = flue_post_height + flue_upper_height;
     linear_extrude(flue_lip_rail_thickness) polygon(points = [
         [0, 0],
         [length * 0.05, flue_lip_thickness],
@@ -59,9 +60,18 @@ module flue_rail() {
 }
 
 module upper() {
-    linear_extrude(flue_upper_height) difference() {
-        square([slide_mount_width, slide_mount_width], true);
-        square([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness], true);
+    difference() {
+        linear_extrude(flue_upper_height) difference() {
+            square([slide_mount_width, slide_mount_width], true);
+            square([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness], true);
+        }
+        
+        linear_extrude(slide_rails_depth) {
+            x_offset = slide_mount_width / 2 - slide_mount_wall_thickness / 2; 
+            y_offset = slide_mount_wall_thickness - (slide_mount_width - slide_length) / 2;
+            translate([x_offset,  y_offset, 0]) square([slide_thickness, slide_length], true);
+            translate([-x_offset, y_offset, 0]) square([slide_thickness, slide_length], true);
+        }
     }
 }
 

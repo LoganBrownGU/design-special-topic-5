@@ -29,7 +29,7 @@ module blower_upper() {
         circle(blower_outer_radius);
         circle(blower_inset_radius);
     }
-    translate([0, 0, blower_upper_depth]) nut("M42", turns=2, Douter=blower_outer_radius * 2, fn=thread_fn);
+    translate([0, 0, blower_upper_depth]) nut(thread_size, turns=thread_turns, Douter=blower_outer_radius * 2, fn=thread_fn);
 }
 
 module blower_mount() {

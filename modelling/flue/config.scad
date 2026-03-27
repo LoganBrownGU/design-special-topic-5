@@ -31,6 +31,7 @@ flue_lip_breadth = slide_mount_width - slide_mount_wall_thickness;
 flue_lip_rail_thickness = (slide_mount_width - flue_lip_breadth) / 2;
 
 nut_depth = 2.3;
+nut_width = 6;
 bolt_radius = 3 / 2;
 
 pipe_outer_radius = 41 / 2;

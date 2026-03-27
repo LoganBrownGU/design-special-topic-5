@@ -1,6 +1,7 @@
 include <config.scad>
 
 use <clip.scad>
+use <hexagon.scad>
 
 module flue_posts() {
     wall_center = (slide_mount_width - slide_mount_wall_thickness) / 2;
@@ -27,11 +28,29 @@ module flue_rail() {
     ]); 
 }
 
-module flue_upper() {
+module upper() {
     linear_extrude(flue_upper_height) difference() {
         square([slide_mount_width, slide_mount_width], true);
         square([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness], true);
     }
+}
+
+module nut_mount() {
+    linear_extrude(nut_depth) difference() {
+        hexagon(nut_width * 1.2);
+        hexagon(nut_width);
+    }
+}
+
+module flue_upper() {
+    difference() {
+        upper();
+        translate([0, slide_mount_width / 2 + 1, flue_upper_height / 2]) rotate([90, 0, 0]) cylinder(slide_mount_wall_thickness + 2, bolt_radius, bolt_radius); 
+        translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) hull() nut_mount();
+    }
+    translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) nut_mount();
+    
+    
 
     translate([0, -(slide_mount_width - slide_mount_wall_thickness) / 2]) rotate([180, 0, 0])
         clip_outer(clip_depth, slide_mount_width, slide_mount_wall_thickness);

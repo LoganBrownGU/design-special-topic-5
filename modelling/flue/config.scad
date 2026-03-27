@@ -1,6 +1,8 @@
 $fn = $preview ? 32 : 128;
 thread_fn = $preview ? 16 : 128;
 
+INFTSML = 0.0000000000001;
+
 blower_inner_radius = 41.7 / 2;
 blower_lip_width = 9.5;
 blower_lip_depth = 2.5;

@@ -1,4 +1,4 @@
-module clip_outer(clip_depth, width, breadth) {
+module clip_outer(clip_depth, width, breadth) { color("red") {
     assert(width > 4 * clip_depth, "width must be greater than 4 * clip_depth");
     assert(breadth > 4 * clip_depth, "breadth must be greater than 4 * clip_depth");
 
@@ -16,10 +16,10 @@ module clip_outer(clip_depth, width, breadth) {
         square([width, breadth], true);
         square([width - 4 * clip_depth, breadth - 4 * clip_depth], true);
     }
-}
+}}
 
 
-module clip_inner(clip_depth, width, breadth) {
+module clip_inner(clip_depth, width, breadth) { color("green") {
     assert(width > 4 * clip_depth, "width must be greater than 4 * clip_depth");
     assert(breadth > 4 * clip_depth, "breadth must be greater than 4 * clip_depth");
 
@@ -31,4 +31,4 @@ module clip_inner(clip_depth, width, breadth) {
         
     translate([0, 0, clip_depth * 2]) linear_extrude(clip_depth)
         square([width - 2 * clip_depth, breadth - 2 * clip_depth], true);
-}
+}}

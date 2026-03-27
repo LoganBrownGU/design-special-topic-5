@@ -24,6 +24,17 @@ flue_taper_into_slit = 20;
 flue_floor_thickness = slide_mount_wall_thickness;
 flue_slit_depth = 1;
 flue_slit_offset = 5;
+flue_upper_height = 20;
+flue_lip_length = flue_upper_height + 15;
+flue_lip_thickness = 2;
+flue_lip_breadth = slide_mount_width - slide_mount_wall_thickness; 
+flue_lip_rail_thickness = (slide_mount_width - flue_lip_breadth) / 2;
+
+nut_depth = 2.3;
+bolt_radius = 3 / 2;
+
+pipe_outer_radius = 41 / 2;
+
 
 window_post_width = 2;
 window_post_height = slide_height + clip_depth;

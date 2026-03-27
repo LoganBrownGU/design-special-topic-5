@@ -3,6 +3,36 @@ include <config.scad>
 use <clip.scad>
 use <hexagon.scad>
 
+module pipe_interface_int() {
+    hull() {
+        linear_extrude(1) 
+            square([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness], true);
+        translate([0, 0, flue_taper_into_pipe]) linear_extrude(1)
+            circle(pipe_inner_radius);
+    }
+}
+
+module pipe_interface_ext() {
+    hull() {
+        linear_extrude(1) 
+            square([slide_mount_width, slide_mount_width], true);
+        translate([0, 0, flue_taper_into_pipe]) linear_extrude(1)
+            circle(pipe_outer_radius + pipe_seat_thickness);
+    }
+}
+
+module pipe_interface() {
+    difference() {
+        pipe_interface_ext();
+        pipe_interface_int();
+    }
+    
+    translate([0, 0, flue_taper_into_pipe]) linear_extrude(pipe_seat_depth) difference() {
+        circle(pipe_outer_radius + pipe_seat_thickness);
+        circle(pipe_outer_radius);
+    }
+}
+
 module flue_posts() {
     wall_center = (slide_mount_width - slide_mount_wall_thickness) / 2;
     rotate([0, 180, 0]) linear_extrude(slide_height) translate([0, wall_center]) { 
@@ -22,7 +52,7 @@ module flue_rail() {
     length = slide_height + flue_upper_height;
     linear_extrude(flue_lip_rail_thickness) polygon(points = [
         [0, 0],
-        [0, flue_lip_thickness],
+        [length * 0.05, flue_lip_thickness],
         [length * 0.67, flue_lip_thickness],
         [length, 0]
     ]); 
@@ -50,8 +80,6 @@ module flue_upper() {
     }
     translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) nut_mount();
     
-    
-
     translate([0, -(slide_mount_width - slide_mount_wall_thickness) / 2]) rotate([180, 0, 0])
         clip_outer(clip_depth, slide_mount_width, slide_mount_wall_thickness);
 
@@ -61,6 +89,8 @@ module flue_upper() {
         flue_rail();
     translate([-slide_mount_width / 2, slide_mount_width / 2, flue_upper_height]) rotate([0, 90, 0]) 
         flue_rail();
+        
+    translate([0, 0, flue_upper_height]) pipe_interface();
 }
 
 flue_upper();

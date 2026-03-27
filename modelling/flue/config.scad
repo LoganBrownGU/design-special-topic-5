@@ -35,6 +35,10 @@ nut_width = 6;
 bolt_radius = 3 / 2;
 
 pipe_outer_radius = 41 / 2;
+pipe_inner_radius = 37.5 / 2;
+flue_taper_into_pipe = 20;
+pipe_seat_depth = 15;
+pipe_seat_thickness = 2;
 
 
 window_post_width = 2;

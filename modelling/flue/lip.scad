@@ -19,6 +19,13 @@ module lip() {
         body();
         translate([0, flue_lip_breadth / 2 - bolt_radius]) cutout();
     }
+    
+    step = 2.5;
+    size = 1.8;
+    for (i = [step:step:(flue_lip_length / 2)+step]) {
+    	translate([i, 0,                flue_lip_thickness]) color("red") rotate([0, 0, 90]) linear_extrude(0.5) text(str("< ", i), size=size, valign="center");
+    	translate([i, flue_lip_breadth, flue_lip_thickness]) color("red") rotate([0, 0, 90]) linear_extrude(0.5) text(str(i, " >"), size=size, valign="center", halign="right");
+    }
 }
 
 lip();

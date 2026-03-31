@@ -3,11 +3,11 @@ thread_fn = $preview ? 16 : 128;
 
 INFTSML = 0.0000000000001;
 
-blower_inner_radius = 41.7 / 2;
-blower_lip_width = 9.5;
+blower_inner_radius = 43.7 / 2;
+blower_lip_width = 10.5;
 blower_lip_depth = 2.5;
 blower_inset_depth = 2.5;
-blower_inset_radius = 34 / 2;
+blower_inset_radius = 35 / 2;
 blower_lip_thickness = 2;
 blower_middle_depth = 2.5;
 blower_outer_radius = 49 / 2;
@@ -24,8 +24,8 @@ clip_depth = 0.6;
 flue_slit_length = slide_mount_width * 0.75;
 flue_taper_into_slit = 20; 
 flue_floor_thickness = slide_mount_wall_thickness;
-flue_slit_depth = 2;
-flue_slit_offset = 8;
+flue_slit_depth = 1;
+flue_slit_offset = slide_mount_wall_thickness + flue_slit_depth / 2;
 flue_upper_height = 20;
 flue_lip_length = flue_upper_height + 15;
 flue_lip_thickness = 2;

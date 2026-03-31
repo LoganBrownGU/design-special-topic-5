@@ -18,10 +18,9 @@ module flue_taper_ext() {
     translate([0, 0, (flue_taper_into_slit + flue_floor_thickness) / 2]) 
         cube([slide_mount_width, slide_mount_width, flue_taper_into_slit + flue_floor_thickness], true);
         
-    translate([0, 0, flue_taper_into_slit + flue_floor_thickness - clip_depth]) difference() {
-        clip_inner(clip_depth, slide_mount_width, slide_mount_width);
-        translate([0, -slide_mount_width / 2 + flue_slit_offset]) linear_extrude(clip_depth * 3) square([flue_slit_length, flue_slit_depth], true);
-    }
+    // translate([0, 0, flue_taper_into_slit + flue_floor_thickness]) difference() {
+        // translate([0, -slide_mount_width / 2 + flue_slit_offset]) linear_extrude(clip_depth * 3) square([flue_slit_length, flue_slit_depth], true);
+    // }
 }
 
 module flue_taper() {

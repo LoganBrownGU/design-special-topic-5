@@ -1,21 +1,19 @@
 include <config.scad>
 use <slide.scad>
-use <clip.scad>
 
 module flue_posts() {
     linear_extrude(flue_post_height) {
         translate([-slide_mount_width / 2, -slide_mount_width / 2]) square([slide_mount_width, slide_mount_wall_thickness]);
     }
-    
-    translate([0, (-slide_mount_width + slide_mount_wall_thickness) / 2, flue_post_height]) 
-        clip_inner(clip_depth, slide_mount_width, slide_mount_wall_thickness);
 }
 
 module slide_rails() {
     difference() {
         linear_extrude(slide_rails_height) difference() {
-            square([slide_mount_width, slide_mount_width], true);
-            square([slide_mount_width - 2 * slide_mount_wall_thickness, slide_mount_width - 2 * slide_mount_wall_thickness], true);
+            square(slide_mount_width, true);
+            inner_width = slide_mount_width - 2 * slide_mount_wall_thickness;
+            square(inner_width, true);
+            translate([0, inner_width / 2]) square(inner_width, true);
         } 
         
         translate([0, 0, slide_rails_height - slide_rails_depth]) linear_extrude(slide_rails_depth) {
@@ -27,16 +25,19 @@ module slide_rails() {
     }
 } 
 
+module attachment() {
+    linear_extrude(slide_rails_height * 2) difference() {
+        square(slide_mount_width + slide_mount_wall_thickness, true);
+        square(slide_mount_width, true);
+        translate([0, slide_mount_width / 2]) square(slide_mount_width - 2 * slide_mount_wall_thickness, true);
+    }
+} 
+
 module flue_middle() {
-    rotate([180, 0, 0]) clip_outer(clip_depth, slide_mount_width, slide_mount_width);
+    translate([0, 0, -slide_rails_height]) attachment();
 
     slide_rails();
     translate([0, 0, slide_rails_height]) flue_posts(); 
-    translate([0, (slide_mount_width - slide_mount_wall_thickness) / 2, slide_rails_height]) {
-    
-        translate([(slide_mount_width - slide_mount_wall_thickness)  / 2, 0]) clip_inner(clip_depth, slide_mount_wall_thickness, slide_mount_wall_thickness);
-        translate([-(slide_mount_width - slide_mount_wall_thickness) / 2, 0]) clip_inner(clip_depth, slide_mount_wall_thickness, slide_mount_wall_thickness);
-    }
 }
 
 flue_middle();

@@ -15,12 +15,12 @@ blower_upper_depth = 5;
 
 slide_length = 38;
 slide_height = 25;
-slide_thickness = 1.2;
+slide_thickness = 1.4;
 slide_rails_height = 3;
 slide_rails_depth = slide_rails_height / 2;
 slide_mount_wall_thickness = slide_thickness * 2.8;
 slide_mount_width = slide_length + slide_mount_wall_thickness * 2;
-clip_depth = 0.4;
+clip_depth = 0.6;
 flue_slit_length = slide_mount_width * 0.75;
 flue_taper_into_slit = 20; 
 flue_floor_thickness = slide_mount_wall_thickness;

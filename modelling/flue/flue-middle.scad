@@ -2,8 +2,14 @@ include <config.scad>
 use <slide.scad>
 
 module flue_posts() {
-    linear_extrude(flue_post_height) {
-        translate([-slide_mount_width / 2, -slide_mount_width / 2]) square([slide_mount_width, slide_mount_wall_thickness]);
+    translation = [-slide_mount_width / 2, -(slide_mount_width + slide_mount_wall_thickness) / 2];
+    linear_extrude(flue_post_height - flue_middle_to_upper_inset_depth) translate(translation) {
+        square([slide_mount_width, slide_mount_wall_thickness * 1.5]);
+    }
+    translate([0, 0, flue_post_height - flue_middle_to_upper_inset_depth]) linear_extrude(flue_middle_to_upper_inset_depth) translate(translation) difference() {
+        square([slide_mount_width, slide_mount_wall_thickness * 1.5]);
+        translate([flue_middle_to_upper_inset_width, slide_mount_wall_thickness - flue_middle_to_upper_inset_thickness]) 
+            square([flue_middle_to_upper_inset_width, flue_middle_to_upper_inset_thickness]); 
     }
 }
 

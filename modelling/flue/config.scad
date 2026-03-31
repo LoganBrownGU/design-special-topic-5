@@ -9,7 +9,7 @@ blower_lip_depth = 2.5;
 blower_inset_depth = 2.5;
 blower_inset_radius = 35 / 2;
 blower_lip_thickness = 2;
-blower_middle_depth = 2.5;
+blower_middle_depth = 4;
 blower_outer_radius = 49 / 2;
 blower_upper_depth = 5;
 
@@ -31,7 +31,7 @@ flue_lip_length = flue_upper_height + 15;
 flue_lip_thickness = 2;
 flue_lip_breadth = slide_mount_width - slide_mount_wall_thickness; 
 flue_lip_rail_thickness = (slide_mount_width - flue_lip_breadth) / 2;
-flue_post_height = slide_height - 2 * slide_rails_depth + 4 * clip_depth;
+flue_post_height = slide_height - 2 * slide_rails_depth;
 
 flue_middle_to_upper_inset_depth = flue_post_height / 2;
 flue_middle_to_upper_inset_width = slide_mount_width / 3;

@@ -9,7 +9,7 @@ module cutout() {
 
 module body() {
     hull() {
-        linear_extrude(INFTSML) square([flue_lip_length, flue_lip_breadth]);  
+        linear_extrude(flue_slit_depth) square([flue_lip_length, flue_lip_breadth]);  
         translate([0, flue_lip_breadth, flue_lip_thickness]) rotate([180, 0, 0]) linear_extrude(INFTSML) square([flue_lip_length * 0.67, flue_lip_breadth]);  
     }
 }

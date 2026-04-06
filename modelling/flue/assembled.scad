@@ -24,6 +24,3 @@ render() intersection () {
 	assembled();
 	translate([0, -50, 0]) cube([100, 100, 1000]);
 }
-
-surface("/home/logan/Downloads/cat.jpg"); 
-

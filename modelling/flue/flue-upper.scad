@@ -61,10 +61,8 @@ module upper() {
 		}
 		
 		linear_extrude(slide_rails_depth) {
-			x_offset = slide_mount_width / 2 - slide_mount_wall_thickness / 2; 
-			y_offset = slide_mount_wall_thickness - (slide_mount_width - slide_length) / 2;
-			translate([x_offset,  y_offset, 0]) square([slide_thickness, slide_length], true);
-			translate([-x_offset, y_offset, 0]) square([slide_thickness, slide_length], true);
+			translate([slide_rails_x_offset,  slide_rails_y_offset, 0]) square([slide_thickness, slide_length], true);
+			translate([-slide_rails_x_offset, slide_rails_y_offset, 0]) square([slide_thickness, slide_length], true);
 		}
 	}
 }
@@ -79,7 +77,7 @@ module nut_mount() {
 module insert_to_middle() {
     linear_extrude(flue_middle_to_upper_inset_depth) {
         translate([0, slide_mount_width / 2 - flue_middle_to_upper_inset_thickness / 2]) 
-            scale(0.95) square([flue_middle_to_upper_inset_width, flue_middle_to_upper_inset_thickness], true); 
+            scale(0.99) square([flue_middle_to_upper_inset_width, flue_middle_to_upper_inset_thickness], true); 
     }
 }
 
@@ -88,18 +86,17 @@ module flue_upper() {
 		upper();
 		translate([0, slide_mount_width / 2 + 1, flue_upper_height / 2]) rotate([90, 0, 0]) cylinder(slide_mount_wall_thickness + 2, bolt_radius, bolt_radius); 
 		translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) hull() nut_mount();
+		translate([-flue_lip_breadth / 2, slide_mount_width / 2 - flue_slit_offset - flue_slit_depth, 0]) { 
+		    cube([flue_lip_breadth, slide_mount_wall_thickness, flue_upper_height]);
+			cube([flue_lip_breadth + slide_thickness * 2, slide_mount_wall_thickness, slide_rails_depth]);
+		}
 	}
 	translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) nut_mount();
 	
-	flue_posts();
-	rotate([180, 0, 0]) insert_to_middle();
-	
-	translate([slide_mount_width / 2 - flue_lip_rail_thickness, slide_mount_width / 2, flue_upper_height]) rotate([0, 90, 0]) 
-		flue_rail();
-	translate([-slide_mount_width / 2 + flue_lip_rail_thickness, slide_mount_width / 2, flue_upper_height]) rotate([0, 90, 0]) mirror([0, 0, 1])
-		flue_rail();
-		
 	translate([0, 0, flue_upper_height]) pipe_interface();
+	
+	
+	rotate([180, 0, 0]) insert_to_middle();
 }
 
 flue_upper();

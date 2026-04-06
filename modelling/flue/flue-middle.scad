@@ -1,7 +1,7 @@
 include <config.scad>
 use <slide.scad>
 
-module flue_posts() {
+module flue_rear() {
     translation = [-slide_mount_width / 2, -(slide_mount_width + slide_mount_wall_thickness) / 2];
     linear_extrude(flue_post_height - flue_middle_to_upper_inset_depth) translate(translation) {
         square([slide_mount_width, slide_mount_wall_thickness * 1.5]);
@@ -23,10 +23,8 @@ module slide_rails() {
         } 
         
         translate([0, 0, slide_rails_height - slide_rails_depth]) linear_extrude(slide_rails_depth) {
-            x_offset = slide_mount_width / 2 - slide_mount_wall_thickness / 2; 
-            y_offset = slide_mount_wall_thickness - (slide_mount_width - slide_length) / 2;
-            translate([x_offset,  y_offset, 0]) square([slide_thickness, slide_length], true);
-            translate([-x_offset, y_offset, 0]) square([slide_thickness, slide_length], true);
+            translate([+slide_rails_x_offset, slide_rails_y_offset, 0]) square([slide_thickness, slide_length], true);
+            translate([-slide_rails_x_offset, slide_rails_y_offset, 0]) square([slide_thickness, slide_length], true);
         }
     }
 } 
@@ -40,10 +38,15 @@ module attachment() {
 } 
 
 module flue_middle() {
-    translate([0, 0, -slide_rails_height]) attachment();
 
-    slide_rails();
-    translate([0, 0, slide_rails_height]) flue_posts(); 
+    difference() {
+        union() { slide_rails(); translate([0, 0, -slide_rails_height]) attachment(); };
+        translate([0, slide_mount_width / 2, slide_rails_height - slide_rails_depth / 2]) 
+            cube([slide_mount_width + 2 * slide_mount_wall_thickness, slide_mount_wall_thickness + 0.2, slide_rails_depth], true);
+        translate([0, slide_mount_width / 2, (slide_rails_height - slide_rails_depth) / 2]) 
+            cube([flue_lip_breadth, slide_mount_wall_thickness + 0.2, (slide_rails_height - slide_rails_depth)], true);
+    }
+    translate([0, 0, slide_rails_height]) flue_rear(); 
 }
 
 flue_middle();

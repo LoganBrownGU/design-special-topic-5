@@ -23,16 +23,20 @@ module flue_taper_ext() {
     // }
 }
 
+module slit(height) {
+    translate([-flue_slit_length / 2, -slide_mount_width / 2 + flue_slit_offset, flue_taper_into_slit]) 
+                linear_extrude(height) square([flue_slit_length, flue_slit_depth]);
+}
+
 module flue_taper() {
     difference() {
         flue_taper_ext();
         hull () {
             linear_extrude(1) circle(blower_inset_radius);
-            translate([0, -slide_mount_width / 2 + flue_slit_offset, flue_taper_into_slit])
-                linear_extrude(INFTSML) square([flue_slit_length, flue_slit_depth], true);
+            slit(INFTSML);
         }
         
-        translate([0, -slide_mount_width / 2 + flue_slit_offset, flue_taper_into_slit]) linear_extrude(flue_floor_thickness) square([flue_slit_length, flue_slit_depth], true);
+        slit(flue_floor_thickness);
     }
 }
 

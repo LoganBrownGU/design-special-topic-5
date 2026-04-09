@@ -1,9 +1,9 @@
 include <config.scad>
 
-module cutout() {
-    linear_extrude(flue_lip_thickness) hull() {
-        square([flue_lip_length / 2 - bolt_radius, bolt_radius * 2]);
-        translate([flue_lip_length / 2, bolt_radius]) circle(bolt_radius);
+module cutout(height) {
+    linear_extrude(height) hull() {
+        square([flue_lip_cutout_length - bolt_radius, bolt_radius * 2]);
+        translate([flue_lip_cutout_length, bolt_radius]) circle(bolt_radius);
     }
 }
 
@@ -17,7 +17,7 @@ module body() {
 module lip() {
     difference() {
         body();
-        translate([0, flue_lip_breadth / 2 - bolt_radius]) cutout();
+        translate([0, flue_lip_breadth / 2 - bolt_radius]) cutout(flue_lip_thickness);
     }
     
     step = 5;

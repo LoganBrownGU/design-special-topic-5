@@ -3,7 +3,6 @@ include <config.scad>
 use <clip.scad>
 use <hexagon.scad>
 
-
 module pipe_interface_int() {
 	hull() {
 		linear_extrude(1) 
@@ -81,6 +80,23 @@ module insert_to_middle() {
     }
 }
 
+module marks() {
+	to_floor = -(slide_height - 2 * slide_rails_depth);
+	mark_width = (slide_mount_width + slide_mount_wall_thickness - flue_lip_breadth) / 4;
+	translate([slide_mount_width / 2, slide_mount_width / 2, to_floor + flue_lip_length]) rotate([0, 0, 90]) linear_extrude(1) square([0.5, mark_width]);
+	translate([-(slide_mount_width) / 2 + mark_width, slide_mount_width / 2, to_floor + flue_lip_length]) rotate([0, 0, 90]) linear_extrude(1) square([0.5, mark_width]);
+}
+
+module lip_guard() {
+
+	to_floor = -(slide_height - 2 * slide_rails_depth);
+	cutout_length = flue_lip_cutout_length - (to_floor + flue_lip_length); 
+	linear_extrude (flue_lip_guard_thickness) hull() {
+		square([1, bolt_radius * 2], true);
+		translate([cutout_length, 0]) circle(bolt_radius);
+	}
+}
+
 module flue_upper() {
 	difference() {
 		upper();
@@ -97,6 +113,10 @@ module flue_upper() {
 	
 	
 	scale([1, 1, -1]) insert_to_middle();
+
+	marks();
+	
+	translate([0, (slide_mount_width - slide_mount_wall_thickness) / 2 - flue_lip_guard_thickness - 0.1]) rotate([0, 90, 90]) color("red") lip_guard();
 }
 
 flue_upper();

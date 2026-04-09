@@ -61,8 +61,8 @@ module upper() {
 		}
 		
 		linear_extrude(slide_rails_depth) {
-			translate([slide_rails_x_offset,  slide_rails_y_offset, 0]) square([slide_thickness, slide_length], true);
-			translate([-slide_rails_x_offset, slide_rails_y_offset, 0]) square([slide_thickness, slide_length], true);
+			scale([+1, 1]) translate(slide_rails_offset) square([slide_thickness, slide_length], true);
+			scale([-1, 1]) translate(slide_rails_offset) square([slide_thickness, slide_length], true);
 		}
 	}
 }
@@ -76,7 +76,7 @@ module nut_mount() {
 
 module insert_to_middle() {
     linear_extrude(flue_middle_to_upper_inset_depth) {
-        translate([0, slide_mount_width / 2 - flue_middle_to_upper_inset_thickness / 2]) 
+        translate(flue_middle_to_upper_inset_offset) 
             scale(0.99) square([flue_middle_to_upper_inset_width, flue_middle_to_upper_inset_thickness], true); 
     }
 }
@@ -96,7 +96,7 @@ module flue_upper() {
 	translate([0, 0, flue_upper_height]) pipe_interface();
 	
 	
-	rotate([180, 0, 0]) insert_to_middle();
+	scale([1, 1, -1]) insert_to_middle();
 }
 
 flue_upper();

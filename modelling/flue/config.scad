@@ -17,12 +17,14 @@ slide_height = 25;
 slide_thickness = 1.4;
 slide_rails_height = 3;
 slide_rails_depth = slide_rails_height / 2;
+slide_rails_width = slide_thickness * 1.01;
 slide_mount_wall_thickness = slide_thickness * 3.5;
 slide_mount_width = 38 + slide_mount_wall_thickness * 2;
 slide_length = slide_mount_width;
-clip_depth = 0.6;
+slide_rails_length = slide_length * 1.01;
+clip_depth = 2;
 flue_taper_into_slit = 20; 
-flue_floor_thickness = slide_mount_wall_thickness;
+flue_floor_thickness = 1;
 flue_slit_depth = 1;
 flue_slit_offset = flue_slit_depth * 1.5;
 flue_upper_height = 20;
@@ -33,12 +35,12 @@ flue_slit_length = flue_lip_breadth - slide_mount_wall_thickness;
 flue_lip_rail_thickness = (slide_mount_width - flue_lip_breadth) / 2;
 flue_lip_y_offset = slide_mount_width / 2 - flue_slit_offset - flue_lip_thickness / 2;
 flue_post_height = slide_height - 2 * slide_rails_depth;
-slide_rails_x_offset = flue_lip_breadth / 2 + slide_thickness / 2; 
-slide_rails_y_offset = slide_mount_wall_thickness - (slide_mount_width - slide_length) / 2;
+slide_rails_offset = [flue_lip_breadth / 2 + slide_thickness / 2, slide_mount_wall_thickness - (slide_mount_width - slide_rails_length) / 2];
 
 flue_middle_to_upper_inset_depth = flue_post_height / 2;
 flue_middle_to_upper_inset_width = slide_mount_width / 3;
 flue_middle_to_upper_inset_thickness = slide_mount_wall_thickness / 2;
+flue_middle_to_upper_inset_offset = [0, -(slide_mount_width / 2 - flue_middle_to_upper_inset_thickness / 2)];
 
 
 nut_depth = 2.3;

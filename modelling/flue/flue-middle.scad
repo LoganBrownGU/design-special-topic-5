@@ -4,21 +4,21 @@ use <flue-lower.scad>
 
 module layer_1() {
     linear_extrude(clip_depth) difference() {
-        square(slide_mount_width + slide_mount_wall_thickness * 2, true);
+        square(slide_mount_width + slide_mount_wall_thickness, true);
         square(slide_mount_width, true);
     }
 } 
 
 module layer_2() {
     linear_extrude(slide_rails_depth) difference() {
-        square(slide_mount_width + slide_mount_wall_thickness * 2, true);
+        square(slide_mount_width + slide_mount_wall_thickness, true);
         scale([+1, 1]) translate(slide_rails_offset) square([slide_rails_width, slide_rails_length], true);
         scale([-1, 1]) translate(slide_rails_offset) square([slide_rails_width, slide_rails_length], true);
         slit();
     }
 }
 
-back_wall_thickness = abs(-(slide_mount_width / 2 + slide_mount_wall_thickness) - (slide_rails_offset.y - slide_rails_length / 2));
+back_wall_thickness = abs(-(slide_mount_width / 2 + slide_mount_wall_thickness / 2) - (slide_rails_offset.y - slide_rails_length / 2));
 back_wall_offset = [0, slide_rails_offset.y - slide_rails_length / 2 - back_wall_thickness / 2];
 module layer_3() {
     linear_extrude(flue_post_height - flue_middle_to_upper_inset_depth) 

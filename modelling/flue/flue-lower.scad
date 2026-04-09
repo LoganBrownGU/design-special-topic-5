@@ -24,7 +24,7 @@ module flue_taper_ext() {
 }
 
 module slit() {
-    translate([-flue_slit_length / 2, -(-slide_mount_width / 2 + flue_slit_offset), flue_taper_into_slit]) 
+    translate([-flue_slit_length / 2, -(-slide_mount_width / 2 + flue_slit_offset) - flue_slit_depth]) 
         square([flue_slit_length, flue_slit_depth]);
 }
 
@@ -32,12 +32,12 @@ module flue_taper() {
     difference() {
         flue_taper_ext();
         hull () {
-            linear_extrude(1) circle(blower_inset_radius);
-            linear_extrude(INFTSML) slit();
+            linear_extrude(10) circle(blower_inset_radius);
+            translate([0, 0, flue_taper_into_slit]) linear_extrude(INFTSML) slit();
         }
-        
-        linear_extrude(flue_floor_thickness) slit();
+        translate([0, 0, flue_taper_into_slit]) linear_extrude(flue_floor_thickness) slit();
     }
+
 }
 
 module flue_lower() {
@@ -46,7 +46,7 @@ module flue_lower() {
     intersection() {
         flue_taper(); 
         hull() {
-            translate([0, 0, flue_taper_into_slit + flue_floor_thickness]) linear_extrude(INFTSML) square([slide_mount_width, slide_mount_width], true);
+            translate([0, 0, flue_taper_into_slit + flue_floor_thickness]) linear_extrude(-INFTSML) square([slide_mount_width, slide_mount_width], true);
             translate([0, 0, flue_taper_into_slit]) linear_extrude(INFTSML) square([slide_mount_width, slide_mount_width], true);
             linear_extrude(INFTSML) circle(blower_inner_radius);
         }

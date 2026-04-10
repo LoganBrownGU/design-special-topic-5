@@ -99,24 +99,27 @@ module lip_guard() {
 
 module flue_upper() {
 	difference() {
-		upper();
+	    union() {
+    	    upper();
+            translate([0, 0, flue_upper_height]) pipe_interface();
+		}
 		translate([0, slide_mount_width / 2 + 1, flue_upper_height / 2]) rotate([90, 0, 0]) cylinder(slide_mount_wall_thickness + 2, bolt_radius, bolt_radius); 
 		translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) hull() nut_mount();
+		
 		translate([-flue_lip_breadth / 2, slide_mount_width / 2 - flue_slit_offset - flue_slit_depth, 0]) { 
-		    cube([flue_lip_breadth, slide_mount_wall_thickness, flue_upper_height]);
-			cube([flue_lip_breadth + slide_thickness * 2, slide_mount_wall_thickness, slide_rails_depth]);
+		    cube([flue_lip_breadth, slide_mount_wall_thickness, flue_upper_height + flue_taper_into_pipe + pipe_seat_depth]);
+			translate([-slide_thickness, 0]) cube([flue_lip_breadth + slide_thickness * 2, slide_mount_wall_thickness, slide_rails_depth]);
 		}
 	}
 	translate([0, slide_mount_width / 2 - slide_mount_wall_thickness + nut_depth / 2, flue_upper_height / 2]) rotate([90, 0, 0]) nut_mount();
 	
-	translate([0, 0, flue_upper_height]) pipe_interface();
 	
 	
 	scale([1, 1, -1]) insert_to_middle();
 
 	marks();
 	
-	translate([0, (slide_mount_width - slide_mount_wall_thickness) / 2 - flue_lip_guard_thickness - 0.1]) rotate([0, 90, 90]) color("red") lip_guard();
+	translate([0, (slide_mount_width - slide_mount_wall_thickness) / 2 - flue_lip_guard_thickness - 0.1]) rotate([0, 90, 90]) lip_guard();
 }
 
 flue_upper();

@@ -22,9 +22,9 @@ module lip() {
     
     step = 5;
     step_minor = 2.5;
-    size = 3.5;
+    size = 4.5;
     for (i = [step_minor:step_minor:(flue_lip_length / 2)+step_minor]) {
-        if (i % step == 0) {
+        if (i % step != 0) {
             translate([i, 0,                flue_lip_thickness]) color("red") rotate([0, 0, 90]) linear_extrude(0.5) text(str("< ", i), size=size, valign="center");
            	translate([i, flue_lip_breadth, flue_lip_thickness]) color("red") rotate([0, 0, 90]) linear_extrude(0.5) text(str(i, " >"), size=size, valign="center", halign="right");
         } else {

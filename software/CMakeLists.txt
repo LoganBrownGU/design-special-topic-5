@@ -13,7 +13,7 @@ set(SOURCE_DIRECTORY src/)
 
 target_sources(software PRIVATE
 	${SOURCE_DIRECTORY}/main.c
-
+	${SOURCE_DIRECTORY}/pico.c
 )
 
 find_library(PICO NAMES ps2000a HINTS /opt/picoscope/lib/)

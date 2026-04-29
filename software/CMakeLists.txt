@@ -17,4 +17,4 @@ target_sources(software PRIVATE
 )
 
 find_library(PICO NAMES ps2000a HINTS /opt/picoscope/lib/)
-target_link_libraries(software ${PICO})
+target_link_libraries(software ${PICO} m cairo X11)

@@ -1,7 +1,7 @@
 #ifndef GRAPH_H_
 #define GRAPH_H_
 
-#define GRAPH_MAX_POINTS (10000)
+#define GRAPH_MAX_POINTS (1048576)
 
 typedef struct graph_t graph;
 

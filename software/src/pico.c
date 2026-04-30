@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define BUFFER_SIZE (1024) 
-
 struct pico_t {
     int16_t handle; 
     int16_t timebase; 
@@ -15,7 +13,8 @@ struct pico_t {
 
 void collect_block_immediate(pico *);
 
-static int16_t saved_values[BUFFER_SIZE];
+int16_t saved_values[PICO_BUFFER_SIZE];
+int32_t last_n = 0; 
 
 void get_streaming_buffers (
     int16_t **overviewBuffers,
@@ -31,6 +30,7 @@ void get_streaming_buffers (
     (void) auto_stop;
 
     printf("got %d values\n", n_values);
+    last_n = n_values;
 
     if (n_values == 0) { return; }
     
@@ -61,7 +61,7 @@ pico *pico_new(void) {
         return NULL;
     }
 
-    if (!(ps2000_run_streaming_ns(_pico->handle, 100, 3, BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 15000))) { 
+    if (!(ps2000_run_streaming_ns(_pico->handle, 100, 3, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 15000))) { 
         printf("failed to start streaming.\n");
         free(_pico);
         return NULL;
@@ -70,15 +70,16 @@ pico *pico_new(void) {
     return _pico;
 }
 
-int16_t *pico_gather_samples(pico *self, int delay) {
-    if (!(ps2000_run_streaming_ns(self->handle, 100, 3, BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 15000))) { 
+int16_t *pico_gather_samples(pico *self, int32_t *n) {
+    if (!(ps2000_run_streaming_ns(self->handle, 1, PS2000_MS, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 1000000))) { 
         printf("failed to start streaming.\n");
         return NULL;
     }
-    sleep(delay);
+    sleep(1);
     ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers);
     ps2000_stop(self->handle);
 
+    *n = last_n;
     return saved_values;
 }
 

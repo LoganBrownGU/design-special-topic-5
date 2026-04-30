@@ -4,10 +4,12 @@
 #include <libps2000/ps2000.h>
 #include <stdint.h>
 
+#define PICO_BUFFER_SIZE (1048576) 
+
 typedef struct pico_t pico; 
 
 pico     *pico_new(void);
 void      pico_destroy(pico **);
-int16_t  *pico_gather_samples(pico *, int);
+int16_t  *pico_gather_samples(pico *, int32_t *);
 
 #endif

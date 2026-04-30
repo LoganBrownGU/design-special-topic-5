@@ -3,9 +3,10 @@
 #include <X11/Xlib.h>
 #include <cairo/cairo-xlib.h>
 #include <cairo/cairo.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <unistd.h>
 
 #define SIZEX   (600)
 #define SIZEY   (600)
@@ -20,6 +21,9 @@ struct graph_t {
 
     // Cairo 
     cairo_surface_t *cs;
+
+
+    point points[GRAPH_MAX_POINTS];
 };
 
 graph *graph_new(const char *name) {
@@ -53,26 +57,33 @@ void graph_paint(graph *self) {
 	
 	cairo_set_source_rgb(c, 1.0, 1.0, 0.0);
 	cairo_set_line_width(c, 2.0);
-	cairo_move_to(c, 0, 0);
-	for (double t = 0.0; t < SIZEX; t += 0.01) {
-       	cairo_line_to(c, t, 100 + 20 * sin(t*0.1));
-       	cairo_move_to(c, t, 100 + 20 * sin(t*0.1));
+	cairo_move_to(c, self->points[0].x, self->points[0].y);
+	for (size_t i = 0; i < GRAPH_MAX_POINTS; i++) {
+       	cairo_line_to(c, self->points[i].x, self->points[i].y);
+       	cairo_move_to(c, self->points[i].x, self->points[i].y);
 	}
+	cairo_line_to(c, self->points[GRAPH_MAX_POINTS-1].x, self->points[GRAPH_MAX_POINTS-1].y);
 	cairo_stroke(c);
 	
 	cairo_show_page(c);
 	cairo_destroy(c);
+
+	printf("painted\n");
+	fflush(stdout);
 }
 
 void graph_render_loop(graph *self) {
     while (1) {
-        XNextEvent(self->d, &self->e);
+        // XNextEvent(self->d, &self->e);
 
-        if (self->e.type == Expose && self->e.xexpose.count < 1) {
-            graph_paint(self);
-        } else if (self->e.type == ButtonPress) {
-            break;
-        }
+        // if (self->e.type == Expose && self->e.xexpose.count < 1) {
+            // graph_paint(self);
+        // } else if (self->e.type == ButtonPress) {
+            // break;
+        // }
+
+        graph_paint(self);
+        sleep(1);
     }
 }
 
@@ -84,4 +95,8 @@ void graph_destroy(graph **self_ptr) {
 
     free(self);
     self = NULL;
+}
+
+point *graph_get_buffer(graph *self) {
+    return self->points;
 }

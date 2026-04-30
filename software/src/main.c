@@ -4,7 +4,6 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -33,7 +32,7 @@ int main(void) {
     
     for (;;) {
         int32_t n; 
-        int16_t *samples = pico_gather_samples(p, &n);
+        int16_t *samples = ring_buffer_get_raw(pico_gather_samples(p, &n));
         point *points = graph_get_buffer(_graph); 
 
         float div_x = ((float) GRAPH_SIZE_X - 10.0) / ((float) n);

@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef int32_t element;
+typedef int16_t element;
 
 struct ring_buffer_t {
     element *buf;
@@ -72,4 +72,12 @@ void ring_buffer_destroy(ring_buffer **self_ptr) {
     free(self);
     
     self = NULL;
+}
+
+element *ring_buffer_get_raw(ring_buffer *self) {
+    return self->buf;
+}
+
+size_t ring_buffer_get_size(ring_buffer *self) {
+    return self->size;
 }

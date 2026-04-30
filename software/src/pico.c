@@ -1,4 +1,5 @@
 #include "pico.h"
+#include "ring-buffer.h"
 #include <libps2000/ps2000.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -13,7 +14,7 @@ struct pico_t {
 
 void collect_block_immediate(pico *);
 
-int16_t saved_values[PICO_BUFFER_SIZE];
+ring_buffer *saved_values = NULL; 
 int32_t last_n = 0; 
 
 void get_streaming_buffers (
@@ -34,12 +35,12 @@ void get_streaming_buffers (
 
     if (n_values == 0) { return; }
     
-    for (size_t i = 0; i < n_values; i++) {
-        saved_values[i] = overviewBuffers[0][i];
-    }
+    ring_buffer_write(saved_values, overviewBuffers[0], n_values);
 }
 
 pico *pico_new(void) {
+    if (!saved_values) { saved_values = ring_buffer_new(PICO_BUFFER_SIZE); }
+    
     pico *_pico = (pico *) malloc(sizeof(pico));
     _pico->handle = ps2000_open_unit();
     
@@ -70,7 +71,7 @@ pico *pico_new(void) {
     return _pico;
 }
 
-int16_t *pico_gather_samples(pico *self, int32_t *n) {
+ring_buffer *pico_gather_samples(pico *self, int32_t *n) {
     if (!(ps2000_run_streaming_ns(self->handle, 1, PS2000_MS, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 1000000))) { 
         printf("failed to start streaming.\n");
         return NULL;

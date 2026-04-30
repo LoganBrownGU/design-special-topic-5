@@ -6,8 +6,10 @@
 typedef struct ring_buffer_t ring_buffer;
 
 ring_buffer *ring_buffer_new(size_t);
-void         ring_buffer_read(ring_buffer *, int32_t *, size_t);
+void         ring_buffer_read(ring_buffer *, int16_t *, size_t);
 void         ring_buffer_destroy(ring_buffer **);
-void         ring_buffer_write(ring_buffer *, int32_t *, size_t);
+void         ring_buffer_write(ring_buffer *, int16_t *, size_t);
+int16_t     *ring_buffer_get_raw(ring_buffer *);
+size_t       ring_buffer_get_size(ring_buffer *);
 
 #endif

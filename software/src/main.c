@@ -1,14 +1,16 @@
 #include "graph.h"
 #include "pico.h"
+#include "ring-buffer.h"
 
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <pthread.h>
 
 static graph *_graph;
 
-int min(int a, int b) {
+int int_min(int a, int b) {
     return a < b ? a : b;
 }
 

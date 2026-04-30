@@ -9,6 +9,7 @@
 
 struct pico_t {
     int16_t handle; 
+    int16_t timebase; 
 };
 
 void collect_block_immediate(pico *);
@@ -29,9 +30,6 @@ void collect_block_immediate (pico *self)
 	int16_t 	overflow;
 	int32_t 	max_samples;
 	int32_t times[BUFFER_SIZE];
-
-	printf ( "Collect block immediate...\n" );
-	printf ( "Press a key to start\n" );
 
 	/* Trigger disabled */
 	ps2000_set_trigger ( self->handle, PS2000_NONE, 0, PS2000_RISING, 0, auto_trigger_ms );
@@ -93,6 +91,31 @@ void collect_block_immediate (pico *self)
 	printf("\n");
 }
 
+void get_streaming_buffers 
+(
+    int16_t **overviewBuffers,
+    int16_t overflow,
+    uint32_t triggeredAt,
+    int16_t triggered,
+    int16_t auto_stop,
+    uint32_t nValues
+) {
+    (void) overflow;
+    (void) triggeredAt;
+    (void) triggered;
+    (void) auto_stop;
+
+    printf("got %d values\n", nValues);
+
+    if (nValues == 0) { return; }
+    
+    int16_t channel_a_max = overviewBuffers[0][0];
+    int16_t channel_b_max = overviewBuffers[1][0];
+
+    (void) channel_a_max;
+    (void) channel_b_max;
+}
+
 pico *pico_new(void) {
     pico *_pico = (pico *) malloc(sizeof(pico));
     _pico->handle = ps2000_open_unit();
@@ -100,13 +123,37 @@ pico *pico_new(void) {
     if (_pico->handle == 0) {
         printf("Failed to open Picoscope.\n");
         free(_pico);
-        _pico = NULL;
+        return NULL;
     }
+
+    if (!(ps2000_set_channel(_pico->handle, PS2000_CHANNEL_A, PS2000_CONDITION_TRUE, PS2000_CONDITION_TRUE, PS2000_2V))) {
+        printf("failed to set channel A active.\n");
+        free(_pico);
+        return NULL;
+    }
+
+    if (!(ps2000_set_trigger(_pico->handle, PS2000_NONE, 0, PS2000_RISING, 0, 0))) {    // disable trigger
+        printf("failed to disable trigger.\n");
+        free(_pico);
+        return NULL;
+    }
+
+    if (!(ps2000_run_streaming_ns(_pico->handle, 100, 3, BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 15000))) { 
+        printf("failed to start streaming.\n");
+        free(_pico);
+        return NULL;
+    }
+    
     return _pico;
+}
+
+void pico_gather_samples(pico *self) {
+    ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers);
 }
 
 void pico_destroy(pico **self_ptr) {
     pico *self = *self_ptr;
+    ps2000_stop(self->handle);
     ps2000_close_unit(self->handle);
     free(self);
     self = NULL;

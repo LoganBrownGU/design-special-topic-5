@@ -1,6 +1,7 @@
 #include "graph.h"
 #include "pico.h"
 
+#include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
 
@@ -23,7 +24,15 @@ int main(void) {
     pthread_create(&t, NULL, graph_render_thread, NULL);
 
     pico *p = pico_new();
-    pico_test_read(p);
+    if (p) {
+        for (int _ = 0; _ < 10; _++) {
+            pico_gather_samples(p);
+            sleep(1);
+        }
+        pico_destroy(&p);
+    } else {
+        printf("pico initialisation failed\n");
+    }
 
     pthread_join(t, NULL);
     

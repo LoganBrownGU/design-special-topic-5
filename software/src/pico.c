@@ -1,29 +1,113 @@
 #include "pico.h"
-#include <libps2000a/PicoStatus.h>
-#include <libps2000a/ps2000aApi.h>
+#include <libps2000/ps2000.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#define BUFFER_SIZE (1024) 
 
 struct pico_t {
     int16_t handle; 
 };
 
-pico *pico_new(const char *device_name) {
+void collect_block_immediate(pico *);
+
+void pico_test_read(pico *self) {
+    collect_block_immediate(self);
+}
+
+void collect_block_immediate (pico *self)
+{
+	int32_t 	time_interval;
+	int16_t 	time_units;
+	int16_t 	oversample;
+	int16_t 	timebase = 8;
+	int32_t 	no_of_samples = BUFFER_SIZE;
+	int16_t 	auto_trigger_ms = 0;
+	int32_t 	time_indisposed_ms;
+	int16_t 	overflow;
+	int32_t 	max_samples;
+	int32_t times[BUFFER_SIZE];
+
+	printf ( "Collect block immediate...\n" );
+	printf ( "Press a key to start\n" );
+
+	/* Trigger disabled */
+	ps2000_set_trigger ( self->handle, PS2000_NONE, 0, PS2000_RISING, 0, auto_trigger_ms );
+
+	/*  Find the maximum number of samples, the time interval (in time_units),
+	*		 the most suitable time units, and the maximum oversample at the current timebase
+	*/
+	oversample = 1;
+	while (!ps2000_get_timebase ( self->handle,
+                        timebase,
+  					    no_of_samples,
+                        &time_interval,
+                        &time_units,
+                        oversample,
+                        &max_samples)) { timebase++; }
+
+	printf ( "timebase: %hd\toversample:%hd\n", timebase, oversample );
+	
+	/* Start it collecting,
+	*  then wait for completion
+	*/
+
+	ps2000_run_block ( self->handle, no_of_samples, timebase, oversample, &time_indisposed_ms );
+	
+	while ( !ps2000_ready ( self->handle ) )
+	{
+		sleep(1);
+	}
+
+	ps2000_stop ( self->handle );
+
+	/* Should be done now...
+	*  get the times (in nanoseconds)
+	*   and the values (in ADC counts)
+	*/
+
+	int16_t avalues[BUFFER_SIZE];
+	int16_t bvalues[BUFFER_SIZE];
+	ps2000_get_times_and_values ( self->handle, times,
+								    avalues,	
+									bvalues,
+									NULL,
+									NULL,
+									&overflow, time_units, no_of_samples );
+
+	/* Print out the first 10 readings,
+	*  converting the readings to mV if required
+	*/
+
+	printf("%d %d\n", time_units, time_interval);
+	int nsamples = 38;
+	for (int i = 0; i < nsamples; i++) {
+	    printf("%5d ", avalues[i]);
+	}
+	printf("\n");
+	for (int i = 0; i < nsamples; i++) {
+        printf("%5d ", times[i]);
+	}
+	printf("\n");
+}
+
+pico *pico_new(void) {
     pico *_pico = (pico *) malloc(sizeof(pico));
-    PICO_STATUS status = ps2000aOpenUnit(&_pico->handle, (int8_t *) device_name);
+    _pico->handle = ps2000_open_unit();
     
-    if (status != PICO_OK) {
-        printf("Failed to open Picoscope %s\n", device_name ? device_name : "");
+    if (_pico->handle == 0) {
+        printf("Failed to open Picoscope.\n");
         free(_pico);
         _pico = NULL;
     }
     return _pico;
 }
 
-void pico_destroy(pico **_pico_ptr) {
-    pico *_pico = *_pico_ptr;
-    ps2000aCloseUnit(_pico->handle);
-    free(_pico);
-    _pico = NULL;
+void pico_destroy(pico **self_ptr) {
+    pico *self = *self_ptr;
+    ps2000_close_unit(self->handle);
+    free(self);
+    self = NULL;
 }

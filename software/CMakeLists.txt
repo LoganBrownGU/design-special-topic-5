@@ -17,5 +17,4 @@ target_sources(software PRIVATE
 	${SOURCE_DIRECTORY}/graph.c
 )
 
-find_library(PICO NAMES ps2000a HINTS /opt/picoscope/lib/)
-target_link_libraries(software ${PICO} m cairo X11 pthread)
+target_link_libraries(software "/opt/picoscope/lib/libps2000.so.2" m cairo X11 pthread)

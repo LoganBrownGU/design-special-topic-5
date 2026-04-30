@@ -1,4 +1,5 @@
 #include "graph.h"
+#include "pico.h"
 
 #include <unistd.h>
 #include <pthread.h>
@@ -20,6 +21,9 @@ int main(void) {
 
     pthread_t t; 
     pthread_create(&t, NULL, graph_render_thread, NULL);
+
+    pico *p = pico_new();
+    pico_test_read(p);
 
     pthread_join(t, NULL);
     

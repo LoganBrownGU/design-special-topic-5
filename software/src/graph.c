@@ -23,30 +23,30 @@ struct graph_t {
 };
 
 graph *graph_new(const char *name) {
-    graph *this = (graph *) malloc(sizeof(graph));
+    graph *self = (graph *) malloc(sizeof(graph));
     
-    if (!(this->d = XOpenDisplay(NULL))) {
+    if (!(self->d = XOpenDisplay(NULL))) {
 		fprintf(stderr, "ERROR: Could not open display\n");
-		free(this);
+		free(self);
 		return NULL;
 	}
     
-	this->scr = DefaultScreen(this->d);
-	this->root_win = RootWindow(this->d, this->scr);
-	this->win = XCreateSimpleWindow(this->d, this->root_win, 1, 1, SIZEX, SIZEY, 0, BlackPixel(this->d, this->scr), BlackPixel(this->d, this->scr));
-	XStoreName(this->d, this->win, name);
-	XSelectInput(this->d, this->win, ExposureMask|ButtonPressMask);
-	XMapWindow(this->d, this->win);
+	self->scr = DefaultScreen(self->d);
+	self->root_win = RootWindow(self->d, self->scr);
+	self->win = XCreateSimpleWindow(self->d, self->root_win, 1, 1, SIZEX, SIZEY, 0, BlackPixel(self->d, self->scr), BlackPixel(self->d, self->scr));
+	XStoreName(self->d, self->win, name);
+	XSelectInput(self->d, self->win, ExposureMask|ButtonPressMask);
+	XMapWindow(self->d, self->win);
 
 	
-	this->cs=cairo_xlib_surface_create(this->d, this->win, DefaultVisual(this->d, 0), SIZEX, SIZEY);
+	self->cs=cairo_xlib_surface_create(self->d, self->win, DefaultVisual(self->d, 0), SIZEX, SIZEY);
 
-	return this;
+	return self;
 }
 
-void graph_paint(graph *this) {
+void graph_paint(graph *self) {
    	cairo_t *c;
-	c=cairo_create(this->cs); 
+	c=cairo_create(self->cs); 
 	cairo_rectangle(c, 0.0, 0.0, SIZEX, SIZEY);
 	cairo_set_source_rgb(c, 0.0, 0.0, 0.5);
 	cairo_fill(c);
@@ -64,24 +64,24 @@ void graph_paint(graph *this) {
 	cairo_destroy(c);
 }
 
-void graph_render_loop(graph *this) {
+void graph_render_loop(graph *self) {
     while (1) {
-        XNextEvent(this->d, &this->e);
+        XNextEvent(self->d, &self->e);
 
-        if (this->e.type == Expose && this->e.xexpose.count < 1) {
-            graph_paint(this);
-        } else if (this->e.type == ButtonPress) {
+        if (self->e.type == Expose && self->e.xexpose.count < 1) {
+            graph_paint(self);
+        } else if (self->e.type == ButtonPress) {
             break;
         }
     }
 }
 
-void graph_destroy(graph **this_ptr) {
-    graph *this = *this_ptr;
+void graph_destroy(graph **self_ptr) {
+    graph *self = *self_ptr;
 
-    cairo_surface_destroy(this->cs);
-    XCloseDisplay(this->d);
+    cairo_surface_destroy(self->cs);
+    XCloseDisplay(self->d);
 
-    free(this);
-    this = NULL;
+    free(self);
+    self = NULL;
 }

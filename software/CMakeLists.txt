@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.23)
 
-add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+add_compile_options(-Wall -Wextra -Wpedantic -Werror -O0 -g)
 
 project(software C)
 
@@ -14,7 +14,8 @@ set(SOURCE_DIRECTORY src/)
 target_sources(software PRIVATE
 	${SOURCE_DIRECTORY}/main.c
 	${SOURCE_DIRECTORY}/pico.c
+	${SOURCE_DIRECTORY}/graph.c
 )
 
 find_library(PICO NAMES ps2000a HINTS /opt/picoscope/lib/)
-target_link_libraries(software ${PICO} m cairo X11)
+target_link_libraries(software ${PICO} m cairo X11 pthread)

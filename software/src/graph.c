@@ -8,9 +8,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-#define SIZEX   (600)
-#define SIZEY   (600)
-
 struct graph_t {
     // X11
     Display *d;
@@ -37,13 +34,13 @@ graph *graph_new(const char *name) {
     
 	self->scr = DefaultScreen(self->d);
 	self->root_win = RootWindow(self->d, self->scr);
-	self->win = XCreateSimpleWindow(self->d, self->root_win, 1, 1, SIZEX, SIZEY, 0, BlackPixel(self->d, self->scr), BlackPixel(self->d, self->scr));
+	self->win = XCreateSimpleWindow(self->d, self->root_win, 1, 1, GRAPH_SIZE_X, GRAPH_SIZE_Y, 0, BlackPixel(self->d, self->scr), BlackPixel(self->d, self->scr));
 	XStoreName(self->d, self->win, name);
 	XSelectInput(self->d, self->win, ExposureMask|ButtonPressMask);
 	XMapWindow(self->d, self->win);
 
 	
-	self->cs=cairo_xlib_surface_create(self->d, self->win, DefaultVisual(self->d, 0), SIZEX, SIZEY);
+	self->cs=cairo_xlib_surface_create(self->d, self->win, DefaultVisual(self->d, 0), GRAPH_SIZE_X, GRAPH_SIZE_Y);
 
 	return self;
 }
@@ -51,7 +48,7 @@ graph *graph_new(const char *name) {
 void graph_paint(graph *self) {
    	cairo_t *c;
 	c=cairo_create(self->cs); 
-	cairo_rectangle(c, 0.0, 0.0, SIZEX, SIZEY);
+	cairo_rectangle(c, 0.0, 0.0, GRAPH_SIZE_X, GRAPH_SIZE_Y);
 	cairo_set_source_rgb(c, 0.0, 0.0, 0.5);
 	cairo_fill(c);
 	

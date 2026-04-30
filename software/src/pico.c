@@ -147,8 +147,14 @@ pico *pico_new(void) {
     return _pico;
 }
 
-void pico_gather_samples(pico *self) {
+void pico_gather_samples(pico *self, int delay) {
+    if (!(ps2000_run_streaming_ns(self->handle, 100, 3, BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 15000))) { 
+        printf("failed to start streaming.\n");
+        return;
+    }
+    sleep(delay);
     ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers);
+    ps2000_stop(self->handle);
 }
 
 void pico_destroy(pico **self_ptr) {

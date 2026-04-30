@@ -25,8 +25,10 @@ int main(void) {
 
     pico *p = pico_new();
     if (p) {
-        for (int _ = 0; _ < 100; _++) {
+        for (int _ = 0; _ < 20; _++) {
             pico_gather_samples(p, 1);
+
+            
         }
         pico_destroy(&p);
     } else {

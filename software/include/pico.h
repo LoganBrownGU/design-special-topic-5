@@ -2,12 +2,12 @@
 #define PICO_H_ 
 
 #include <libps2000/ps2000.h>
+#include <stdint.h>
 
 typedef struct pico_t pico; 
 
-pico *pico_new(void);
-void  pico_test_read(pico *);
-void  pico_destroy(pico **);
-void  pico_gather_samples(pico *, int);
+pico     *pico_new(void);
+void      pico_destroy(pico **);
+int16_t  *pico_gather_samples(pico *, int);
 
 #endif

@@ -1,3 +1,4 @@
+#include "gl.h"
 #include "graph.h"
 #include "pico.h"
 #include "ring-buffer.h"
@@ -7,21 +8,16 @@
 #include <unistd.h>
 #include <pthread.h>
 
-static graph *_graph;
-
 int int_min(int a, int b) {
     return a < b ? a : b;
 }
 
 void *graph_render_thread(void *_) { (void) _;
-    graph_render_loop(_graph);
-    graph_destroy(&_graph);
-
+    graph_init("This is my window.");
     return NULL;
 }
 
 int main(void) {
-    _graph = graph_new("This is my window.");
 
     pthread_t t; 
     pthread_create(&t, NULL, graph_render_thread, NULL);
@@ -33,16 +29,11 @@ int main(void) {
     for (;;) {
         int32_t n; 
         int16_t *samples = ring_buffer_get_raw(pico_gather_samples(p, &n));
-        point *points = graph_get_buffer(_graph); 
+        GL_Point *points = graph_get_buffer(); 
 
-        float div_x = ((float) GRAPH_SIZE_X - 10.0) / ((float) n);
-        float div_y = ((float) GRAPH_SIZE_Y - 10.0) / (2.0 * (float) INT16_MAX);
-        for (int i = 0; i < n; i++) {
-            float y = ((float) samples[i]) * div_y;
-            points[i].y = y;  
-            float x = ((float) i) * div_x;
-            if (i > n - 10) { printf("%f %f\n", x, y); };
-            points[i].x = x;
+        for (int i = 0; i < GRAPH_MAX_POINTS; i++) {
+            points[i].y = (samples[i] * GRAPH_SIZE_Y) / INT16_MAX;  
+            points[i].x = (i * GRAPH_SIZE_X) / GRAPH_MAX_POINTS;
         }
     }
     

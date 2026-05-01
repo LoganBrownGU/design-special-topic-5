@@ -2,10 +2,11 @@
 #define PICO_H_ 
 
 #include "ring-buffer.h"
+#include "graph.h"
 #include <libps2000/ps2000.h>
 #include <stdint.h>
 
-#define PICO_BUFFER_SIZE (1048576) 
+#define PICO_BUFFER_SIZE (GRAPH_MAX_POINTS) 
 
 typedef struct pico_t pico; 
 

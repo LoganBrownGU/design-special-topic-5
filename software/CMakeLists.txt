@@ -16,6 +16,7 @@ target_sources(software PRIVATE
 	${SOURCE_DIRECTORY}/pico.c
 	${SOURCE_DIRECTORY}/graph.c
 	${SOURCE_DIRECTORY}/ring-buffer.c
+	${SOURCE_DIRECTORY}/gl.c
 )
 
 target_link_libraries(software "/opt/picoscope/lib/libps2000.so.2" m cairo X11 pthread)

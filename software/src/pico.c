@@ -30,8 +30,8 @@ void get_streaming_buffers (
     (void) triggered;
     (void) auto_stop;
 
-    printf("got %d values\n", n_values);
     last_n = n_values;
+    printf("%d\n", n_values);
 
     if (n_values == 0) { return; }
     
@@ -62,22 +62,17 @@ pico *pico_new(void) {
         return NULL;
     }
 
-    if (!(ps2000_run_streaming_ns(_pico->handle, 100, 3, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 15000))) { 
-        printf("failed to start streaming.\n");
-        free(_pico);
-        return NULL;
-    }
-    
     return _pico;
 }
 
 ring_buffer *pico_gather_samples(pico *self, int32_t *n) {
-    if (!(ps2000_run_streaming_ns(self->handle, 1, PS2000_MS, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 1000000))) { 
+    if (!(ps2000_run_streaming_ns(self->handle, 900, PS2000_NS, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 1000000))) { 
         printf("failed to start streaming.\n");
         return NULL;
     }
-    sleep(1);
-    ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers);
+
+    
+    while (!ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers)) { usleep(50); }
     ps2000_stop(self->handle);
 
     *n = last_n;

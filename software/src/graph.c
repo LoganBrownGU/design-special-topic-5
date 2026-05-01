@@ -34,6 +34,8 @@ void graph_init(const char *name) {
     GL_SetExposeHandler(expose_handler);
     GL_SetFrameRate(60);
     GL_Loop(update_state, render_frame);
+    printf("window closing...\n");
+    GL_Quit();
 }
 
 GL_Point *graph_get_buffer(void) {

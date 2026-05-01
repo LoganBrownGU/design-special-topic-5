@@ -48,7 +48,6 @@ void ring_buffer_write(ring_buffer *self, element *src, size_t n) {
     if (left_to_write <= remaining_after_ptr) {
         memcpy(self->buf + self->ptr, src, left_to_write * sizeof(element));
         self->ptr += left_to_write;
-        printf("%lu\n", self->ptr);
         return;
     }
 

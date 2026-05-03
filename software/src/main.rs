@@ -1,6 +1,6 @@
-use std::{thread::{self, sleep}, time::Duration};
+use std::{sync::mpsc::{TryRecvError, channel}, thread::{self, sleep}, time::Duration};
 
-use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, channel_plot, run_liveplot};
+use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, channel_plot, data::x_formatter::{DecimalFormatter, XFormatter}, run_liveplot};
 
 use crate::pico::pico_new;
 
@@ -9,15 +9,17 @@ mod pico;
 
 fn main() {
     let (sink, rx) = channel_plot();
+    let (plot_done_tx_0, plot_done_rx_0) = channel();
+    let (plot_done_tx_1, plot_done_rx_1) = channel();
     
-    let sample_rate = 1000;
-    let (ptx, prx) = pico_new(sample_rate);
+    let sample_rate = 100_000;
+    let (ptx, prx) = pico_new(sample_rate, plot_done_rx_0);
 
     let t_step: f64 = 1.0 / sample_rate as f64;
     let t = thread::spawn(move || {
         let trace = sink.create_trace("Pico Signal", None);
         let mut n: f64 = 0.0;
-        for _ in 0..60 {
+        while let Err(TryRecvError::Empty) = plot_done_rx_1.try_recv() {
             let v = prx.receive();
             if v.is_none() { continue; }
             let v = v.unwrap();
@@ -33,12 +35,17 @@ fn main() {
 
     let mut config = LivePlotConfig::default();
     config.time_window_secs = 60.0;
+    config.x_formatter = XFormatter::Decimal(DecimalFormatter::default());
     config.auto_fit = AutoFitConfig {
         auto_fit_to_view: true,
         keep_max_fit: true,
     };
+    config.max_points = 10 * sample_rate as usize;
     config.headline = Some("Basic plotting idek".to_string());
     run_liveplot(rx, config).unwrap();
+
+    plot_done_tx_0.send(()).unwrap();
+    plot_done_tx_1.send(()).unwrap();
     ptx.join();
     t.join().unwrap();
 }

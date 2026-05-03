@@ -1,5 +1,6 @@
 use std::{sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle, sleep}, time::Duration};
 
+use dasp::sample;
 use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, PicoStreamingDevice, ToStreamDevice}};
 
 
@@ -14,9 +15,9 @@ pub struct PicoTx {
     handler: Arc<dyn NewDataHandler>,
 }
 
-pub fn pico_new() -> (PicoTx, PicoRx) {
+pub fn pico_new(sample_rate: u32) -> (PicoTx, PicoRx) {
     let (tx, rx) = channel();
-    (PicoTx::new(tx), PicoRx::new(rx))
+    (PicoTx::new(tx, sample_rate), PicoRx::new(rx))
 }
 
 impl PicoRx {
@@ -24,17 +25,18 @@ impl PicoRx {
         Self { rx }
     }
 
-    pub fn receive(&self) -> Option<Vec<PicoPacket>> {
+    pub fn receive(&self) -> Option<Vec<i16>> {
         let mut v = Vec::new();
-        while let Ok(packet) = self.rx.try_recv() {
-            v.push(packet);
+        while let Ok(mut packet) = self.rx.try_recv() {
+            v.append(&mut packet.0);
         }
         Some(v)
     }
 }
 
+const CHANNEL_IN_USE: PicoChannel = PicoChannel::A;
 impl PicoTx {
-    fn new(tx: Sender<PicoPacket>) -> Self {
+    fn new(tx: Sender<PicoPacket>, sample_rate: u32) -> Self {
         let enumerator = DeviceEnumerator::new();
         let device = enumerator.enumerate()
             .into_iter().flatten()
@@ -42,19 +44,23 @@ impl PicoTx {
             .open().expect("Failed to open Picoscope.")
             .into_streaming_device();
 
-        device.enable_channel(PicoChannel::A, PicoRange::X1_PROBE_10V, PicoCoupling::DC);
+        device.enable_channel(CHANNEL_IN_USE, PicoRange::X1_PROBE_10V, PicoCoupling::DC);
         
         struct PicoHandler { tx: Sender<PicoPacket> }
         impl NewDataHandler for PicoHandler {
-            fn handle_event(&self, _: &pico_sdk::prelude::StreamingEvent) {
-                self.tx.send(PicoPacket(vec![420, 69])).unwrap();
+            fn handle_event(&self, se: &pico_sdk::prelude::StreamingEvent) {
+                let data = se.channels[&CHANNEL_IN_USE].samples.clone();
+                let result = self.tx.send(PicoPacket(data));
+                if result.is_err() {
+                     eprintln!("Failed to send sample: {}.", result.unwrap_err().to_string());
+                }
             }
         }
         
         let handler = Arc::new(PicoHandler { tx });
         device.new_data.subscribe(handler.clone());
         Self { t: thread::spawn(move || {
-            device.start(1_000_000).expect("Failed to start Picoscope streaming.");       
+            device.start(sample_rate).expect("Failed to start Picoscope streaming.");       
             sleep(Duration::from_secs(60));
             device.stop();
         }), handler }

@@ -1,6 +1,6 @@
-use std::{sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle, Thread}};
+use std::{sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle, sleep}, time::Duration};
 
-use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, ToStreamDevice}};
+use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, PicoStreamingDevice, ToStreamDevice}};
 
 
 pub struct PicoPacket(Vec<i16>);
@@ -11,6 +11,7 @@ pub struct PicoRx {
 
 pub struct PicoTx {
     t: JoinHandle<()>,
+    handler: Arc<dyn NewDataHandler>,
 }
 
 pub fn pico_new() -> (PicoTx, PicoRx) {
@@ -23,9 +24,12 @@ impl PicoRx {
         Self { rx }
     }
 
-    pub fn receive(&self) -> Option<PicoPacket> {
-        let data = self.rx.try_recv().ok()?;
-        Some(data)
+    pub fn receive(&self) -> Option<Vec<PicoPacket>> {
+        let mut v = Vec::new();
+        while let Ok(packet) = self.rx.try_recv() {
+            v.push(packet);
+        }
+        Some(v)
     }
 }
 
@@ -40,18 +44,23 @@ impl PicoTx {
 
         device.enable_channel(PicoChannel::A, PicoRange::X1_PROBE_10V, PicoCoupling::DC);
         
-        Self { t: thread::spawn(move || {
-            struct PicoHandler { tx: Sender<PicoPacket> };
-            impl NewDataHandler for PicoHandler {
-                fn handle_event(&self, _: &pico_sdk::prelude::StreamingEvent) {
-                    
-                    self.tx.send(PicoPacket(vec![420, 69])).unwrap();
-                }
+        struct PicoHandler { tx: Sender<PicoPacket> }
+        impl NewDataHandler for PicoHandler {
+            fn handle_event(&self, _: &pico_sdk::prelude::StreamingEvent) {
+                self.tx.send(PicoPacket(vec![420, 69])).unwrap();
             }
-            
-            let handler = Arc::new(PicoHandler { tx });
-            device.new_data.subscribe(handler);
-            device.start(1_000_000).expect("Failed to start Picoscope streaming.");
-        }) }
+        }
+        
+        let handler = Arc::new(PicoHandler { tx });
+        device.new_data.subscribe(handler.clone());
+        Self { t: thread::spawn(move || {
+            device.start(1_000_000).expect("Failed to start Picoscope streaming.");       
+            sleep(Duration::from_secs(60));
+            device.stop();
+        }), handler }
+    }
+
+    pub fn join(self) {
+        self.t.join().unwrap();
     }
 }

@@ -1,17 +1,20 @@
 use std::{sync::mpsc::{Receiver, TryRecvError, channel}, thread::{self, JoinHandle}};
 
 use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, PlotSink, channel_plot, data::x_formatter::{DecimalFormatter, XFormatter}, run_liveplot};
+use pico_sdk::common::PicoChannel;
 
-use crate::{data_source::DataSource, pico::{MockPicoRx, pico_new}};
+use crate::{data_source::DataSource, pico::{MockPicoRx, Pico, PicoAWG}};
 
 mod signal_processing;
 mod pico;
 mod data_source;
 
-fn start_collector(data_source: Box<dyn DataSource>, done: Receiver<()>, sink: PlotSink, sample_rate: usize) -> JoinHandle<()> {
+fn start_collector(parent: Pico, data_source: Box<dyn DataSource>, done: Receiver<()>, sink: PlotSink, sample_rate: usize) -> JoinHandle<()> {
     thread::spawn(move || {
         let trace = sink.create_trace("PicoScope Channel A Fourier Transform", None);
         let mut buf = Vec::with_capacity(sample_rate as usize);
+        let (tx, rx) = channel();
+        let awg = PicoAWG::new(&parent, rx);
         while let Err(TryRecvError::Empty) = done.try_recv() {
             let v = data_source.receive();
             if v.is_none() { continue; }
@@ -25,12 +28,15 @@ fn start_collector(data_source: Box<dyn DataSource>, done: Receiver<()>, sink: P
                     for (f, a) in fft.iter().enumerate() { let _ = sink.send_point(&trace, PlotPoint { x: f as f64, y: *a }); }
 
                     let max = fft[0..(fft.len()/2)].iter().enumerate().reduce(|a, b| if a.1 > b.1 { a } else { b }).unwrap();
-                    println!("{} {}", max.0, max.1);
+                    tx.send(max.0 as f64).unwrap();
                     
                     buf.clear();
                 }
             }
         }
+        drop(tx);
+        drop(parent);
+        awg.join();
     })
 }
 
@@ -47,10 +53,13 @@ fn main() {
         println!("Running with default sample rate of 1kHz.");
         1000
     };
-    let (ptx, prx) = pico_new(sample_rate, plot_done_rx_0);
+
+
+    let pico = Pico::new();
+    let (ptx, prx) = Pico::open_channel(&pico, sample_rate, plot_done_rx_0, PicoChannel::A);
     let mockprx = MockPicoRx { sample_rate: sample_rate as usize };
 
-    let t = start_collector(Box::new(prx), plot_done_rx_1, sink, sample_rate as usize);
+    let t = start_collector(pico, Box::new(prx), plot_done_rx_1, sink, sample_rate as usize);
 
     let mut config = LivePlotConfig::default();
     config.time_window_secs = sample_rate as f64;

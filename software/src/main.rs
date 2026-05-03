@@ -11,8 +11,15 @@ fn main() {
     let (sink, rx) = channel_plot();
     let (plot_done_tx_0, plot_done_rx_0) = channel();
     let (plot_done_tx_1, plot_done_rx_1) = channel();
-    
-    let sample_rate = 100_000;
+
+    let args = std::env::args().collect::<Vec<String>>();
+    let sample_rate = if args.len() >= 2 { 
+        let sample_rate_str = args[1].clone();
+        sample_rate_str.parse::<u32>().expect(format!("Sample rate ({sample_rate_str}) invalid.").as_str()) 
+    } else {
+        println!("Running with default sample rate of 1kHz.");
+        1000
+    };
     let (ptx, prx) = pico_new(sample_rate, plot_done_rx_0);
 
     let t_step: f64 = 1.0 / sample_rate as f64;
@@ -34,7 +41,7 @@ fn main() {
     });
 
     let mut config = LivePlotConfig::default();
-    config.time_window_secs = 60.0;
+    config.time_window_secs = 10.0;
     config.x_formatter = XFormatter::Decimal(DecimalFormatter::default());
     config.auto_fit = AutoFitConfig {
         auto_fit_to_view: true,

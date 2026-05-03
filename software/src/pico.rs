@@ -1,6 +1,6 @@
 use std::{f64, sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle, sleep}, time::Duration};
 
-use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, ToStreamDevice}};
+use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, ToStreamDevice}, sys::{ps2000, ps2000a::ps2000aBlockReady}};
 
 use crate::data_source::DataSource;
 
@@ -98,4 +98,31 @@ impl DataSource for MockPicoRx {
 
         Some(samples)
     } 
+}
+
+
+pub struct PicoA {
+    rx: Receiver<usize>,
+    handle: JoinHandle<()>
+}
+
+impl PicoA {
+    pub fn new(rx: Receiver<usize>) -> Self {
+        
+        let enumerator = DeviceEnumerator::new();
+        let device = enumerator.enumerate()
+            .into_iter().flatten()
+            .next().expect("No Picoscope was found.")
+            .open().expect("Failed to open Picoscope.");
+
+        let handle = (unsafe { *device.handle.data_ptr() }).unwrap();
+        
+        Self { rx, handle: thread::spawn(move || {
+            
+        }) }
+    }
+
+    pub fn join(self) {
+        self.handle.join().unwrap();
+    }
 }

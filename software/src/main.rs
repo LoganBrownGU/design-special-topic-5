@@ -10,7 +10,7 @@ mod data_source;
 
 fn start_collector(data_source: Box<dyn DataSource>, done: Receiver<()>, sink: PlotSink, sample_rate: usize) -> JoinHandle<()> {
     thread::spawn(move || {
-        let trace = sink.create_trace("Pico Signal", None);
+        let trace = sink.create_trace("PicoScope Channel A Fourier Transform", None);
         let mut buf = Vec::with_capacity(sample_rate as usize);
         while let Err(TryRecvError::Empty) = done.try_recv() {
             let v = data_source.receive();
@@ -20,8 +20,13 @@ fn start_collector(data_source: Box<dyn DataSource>, done: Receiver<()>, sink: P
             for s in v {
                 buf.push(s);
                 if buf.len() == sample_rate as usize {
-                    let fft = signal_processing::fft(&buf);
-                    for (f, a) in fft.iter().enumerate() { sink.send_point(&trace, PlotPoint { x: f as f64, y: *a }).unwrap(); }
+                    let mut fft = signal_processing::fft(&buf);
+                    fft[0] = 0.0;
+                    for (f, a) in fft.iter().enumerate() { let _ = sink.send_point(&trace, PlotPoint { x: f as f64, y: *a }); }
+
+                    let max = fft[0..(fft.len()/2)].iter().enumerate().reduce(|a, b| if a.1 > b.1 { a } else { b }).unwrap();
+                    println!("{} {}", max.0, max.1);
+                    
                     buf.clear();
                 }
             }
@@ -45,7 +50,7 @@ fn main() {
     let (ptx, prx) = pico_new(sample_rate, plot_done_rx_0);
     let mockprx = MockPicoRx { sample_rate: sample_rate as usize };
 
-    let t = start_collector(Box::new(mockprx), plot_done_rx_1, sink, sample_rate as usize);
+    let t = start_collector(Box::new(prx), plot_done_rx_1, sink, sample_rate as usize);
 
     let mut config = LivePlotConfig::default();
     config.time_window_secs = sample_rate as f64;
@@ -59,8 +64,8 @@ fn main() {
     println!("Starting plotter...");
     run_liveplot(rx, config).unwrap();
 
-    plot_done_tx_0.send(()).unwrap();
-    plot_done_tx_1.send(()).unwrap();
+    let _ = plot_done_tx_0.send(());
+    let _ = plot_done_tx_1.send(());
     ptx.join();
     t.join().unwrap();
 }

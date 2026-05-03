@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <threads.h>
 #include <unistd.h>
 
 struct pico_t {
@@ -14,7 +15,7 @@ struct pico_t {
 
 void collect_block_immediate(pico *);
 
-ring_buffer *saved_values = NULL; 
+int16_t saved_values[PICO_BUFFER_SIZE]; 
 int32_t last_n = 0; 
 
 void get_streaming_buffers (
@@ -35,11 +36,10 @@ void get_streaming_buffers (
 
     if (n_values == 0) { return; }
     
-    ring_buffer_write(saved_values, overviewBuffers[0], n_values);
+    memcpy(saved_values, overviewBuffers[0], n_values * sizeof(int16_t));
 }
 
 pico *pico_new(void) {
-    if (!saved_values) { saved_values = ring_buffer_new(PICO_BUFFER_SIZE); }
     
     pico *_pico = (pico *) malloc(sizeof(pico));
     _pico->handle = ps2000_open_unit();
@@ -65,14 +65,36 @@ pico *pico_new(void) {
     return _pico;
 }
 
-ring_buffer *pico_gather_samples(pico *self, int32_t *n) {
-    if (!(ps2000_run_streaming_ns(self->handle, 900, PS2000_NS, PICO_BUFFER_SIZE, PS2000_CONDITION_TRUE, 1, 1000000))) { 
-        printf("failed to start streaming.\n");
-        return NULL;
+int16_t *pico_gather_samples(pico *self, int32_t *n) {
+    int32_t time_indisposed;
+
+    int16_t timebase = 0; 
+    int32_t time_interval = 0;
+    int16_t time_units;
+    int32_t max_samples;
+    int result = 0;
+    while (result == 0 && time_interval < 1000000000 / PICO_BUFFER_SIZE) {
+        ps2000_get_timebase(self->handle, timebase++, PICO_BUFFER_SIZE, &time_interval, &time_units, 1, &max_samples);
+        if (timebase > 100) {exit(-1);};
+    }
+    
+    printf("timebase: %d\n", timebase);
+    ps2000_run_block(self->handle, PICO_BUFFER_SIZE, timebase, 1, &time_indisposed);
+    
+    printf("time indisposed: %d ms\n", time_indisposed);
+
+    thrd_sleep(&(struct timespec){ .tv_sec = time_indisposed / 1000 }, NULL);
+    while (!ps2000_ready(self->handle)) { 
+        thrd_sleep(&(struct timespec){ .tv_nsec = 1000000 }, NULL);
     }
 
+    int16_t overflow;
+    ps2000_get_values(self->handle, saved_values, NULL, NULL, NULL, &overflow, PICO_BUFFER_SIZE);
     
-    while (!ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers)) { usleep(50); }
+    // while (!ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers);
+
+
+    
     ps2000_stop(self->handle);
 
     *n = last_n;

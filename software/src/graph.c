@@ -9,6 +9,7 @@
 #include <unistd.h>
 
 GL_Point points[GRAPH_MAX_POINTS];
+int is_running = 1;
 
 static void render_frame(void) {
     GL_ClearWindow();
@@ -36,8 +37,13 @@ void graph_init(const char *name) {
     GL_Loop(update_state, render_frame);
     printf("window closing...\n");
     GL_Quit();
+    is_running = 0;
 }
 
 GL_Point *graph_get_buffer(void) {
     return points;
+}
+
+int graph_is_running(void) {
+    return is_running;
 }

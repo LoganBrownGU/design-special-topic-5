@@ -26,9 +26,9 @@ int main(void) {
     
     if (!p) { printf("pico initialisation failed\n"); return -1; }
     
-    for (;;) {
+    while (graph_is_running()) {
         int32_t n; 
-        int16_t *samples = ring_buffer_get_raw(pico_gather_samples(p, &n));
+        int16_t *samples = pico_gather_samples(p, &n);
         GL_Point *points = graph_get_buffer(); 
 
         for (int i = 0; i < GRAPH_MAX_POINTS; i++) {

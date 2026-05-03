@@ -12,6 +12,6 @@ typedef struct pico_t pico;
 
 pico         *pico_new(void);
 void          pico_destroy(pico **);
-ring_buffer  *pico_gather_samples(pico *, int32_t *);
+int16_t      *pico_gather_samples(pico *, int32_t *);
 
 #endif

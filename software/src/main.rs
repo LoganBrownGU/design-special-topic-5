@@ -22,32 +22,35 @@ fn main() {
     };
     let (ptx, prx) = pico_new(sample_rate, plot_done_rx_0);
 
-    let t_step: f64 = 1.0 / sample_rate as f64;
     let t = thread::spawn(move || {
         let trace = sink.create_trace("Pico Signal", None);
-        let mut n: f64 = 0.0;
+        let mut buf = Vec::with_capacity(sample_rate as usize);
         while let Err(TryRecvError::Empty) = plot_done_rx_1.try_recv() {
             let v = prx.receive();
             if v.is_none() { continue; }
             let v = v.unwrap();
             
             for s in v {
-                let _ =  sink.send_point(&trace, PlotPoint { x: n * t_step, y: s as f64 });
-                n += 1.0; 
+                buf.push(s);
+                if buf.len() == sample_rate as usize {
+                    println!("update");
+                    let fft = signal_processing::fft(&buf);
+                    print!("{s} ");
+                    for (f, a) in fft.iter().enumerate() { sink.send_point(&trace, PlotPoint { x: f as f64, y: *a as f64 }).unwrap(); }
+                    buf.clear();
+                }
             }
-            
-            sleep(Duration::from_secs(1));
         }
     });
 
     let mut config = LivePlotConfig::default();
-    config.time_window_secs = 10.0;
+    config.time_window_secs = sample_rate as f64;
     config.x_formatter = XFormatter::Decimal(DecimalFormatter::default());
     config.auto_fit = AutoFitConfig {
         auto_fit_to_view: true,
         keep_max_fit: true,
     };
-    config.max_points = 10 * sample_rate as usize;
+    config.max_points = sample_rate as usize;
     config.headline = Some("Basic plotting idek".to_string());
     run_liveplot(rx, config).unwrap();
 

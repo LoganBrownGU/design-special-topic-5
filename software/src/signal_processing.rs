@@ -1,4 +1,4 @@
-use rustfft::{FftPlanner, num_complex::{self, Complex}};
+use rustfft::{FftPlanner, num_complex::Complex};
 
 
 pub fn fft(samples: &Vec<i16>) -> Vec<i16> {

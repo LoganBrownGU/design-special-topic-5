@@ -1,4 +1,4 @@
-use std::{sync::mpsc::{TryRecvError, channel}, thread::{self, sleep}, time::Duration};
+use std::{sync::mpsc::{TryRecvError, channel}, thread::{self}};
 
 use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, channel_plot, data::x_formatter::{DecimalFormatter, XFormatter}, run_liveplot};
 

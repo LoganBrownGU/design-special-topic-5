@@ -1,7 +1,6 @@
-use std::{sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle, sleep}, time::Duration};
+use std::{sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle}};
 
-use dasp::sample;
-use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, PicoStreamingDevice, ToStreamDevice}};
+use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, ToStreamDevice}};
 
 
 pub struct PicoPacket(Vec<i16>);
@@ -12,7 +11,7 @@ pub struct PicoRx {
 
 pub struct PicoTx {
     t: JoinHandle<()>,
-    handler: Arc<dyn NewDataHandler>,
+    _handler: Arc<dyn NewDataHandler>, // need to keep a ref to the handler to make sure it's not dropped
 }
 
 pub fn pico_new(sample_rate: u32, done_rx: Receiver<()>) -> (PicoTx, PicoRx) {
@@ -64,7 +63,7 @@ impl PicoTx {
             device.start(sample_rate).expect("Failed to start Picoscope streaming.");       
             while let Err(_) = done_rx.recv() {}
             device.stop();
-        }), handler }
+        }), _handler: handler }
     }
 
     pub fn join(self) {

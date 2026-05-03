@@ -1,6 +1,8 @@
-use std::{sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle}};
+use std::{f64, sync::{Arc, mpsc::{Receiver, Sender, channel}}, thread::{self, JoinHandle, sleep}, time::Duration};
 
 use pico_sdk::{common::{PicoChannel, PicoCoupling, PicoRange}, prelude::{DeviceEnumerator, NewDataHandler, ToStreamDevice}};
+
+use crate::data_source::DataSource;
 
 
 pub struct PicoPacket(Vec<i16>);
@@ -23,15 +25,19 @@ impl PicoRx {
     fn new(rx: Receiver<PicoPacket>) -> Self { 
         Self { rx }
     }
+}
 
-    pub fn receive(&self) -> Option<Vec<i16>> {
+impl DataSource for PicoRx {
+    fn receive(&self) -> Option<Vec<i16>> {
         let mut v = Vec::new();
         while let Ok(mut packet) = self.rx.try_recv() {
             v.append(&mut packet.0);
         }
-        Some(v)
+        Some(v)       
     }
 }
+
+
 
 const CHANNEL_IN_USE: PicoChannel = PicoChannel::A;
 impl PicoTx {
@@ -69,4 +75,27 @@ impl PicoTx {
     pub fn join(self) {
         self.t.join().unwrap();
     }
+}
+
+
+
+
+pub struct MockPicoRx {
+    pub sample_rate: usize,
+}
+
+impl DataSource for MockPicoRx {
+    fn receive(&self) -> Option<Vec<i16>> {
+        sleep(Duration::from_millis(100));
+        let mut samples = Vec::new();
+        for i in 0..self.sample_rate {
+            let t = i as f64 / self.sample_rate as f64;
+
+            let om = 2.0 * f64::consts::PI * t;
+            let y = (5.0*om).sin() + (10.0*om).sin();
+            samples.push((y * i16::MAX as f64) as i16);
+        }
+
+        Some(samples)
+    } 
 }

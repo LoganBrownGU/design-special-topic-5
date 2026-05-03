@@ -1,10 +1,10 @@
-use rustfft::{FftPlanner, num_complex::Complex};
+use rustfft::{FftPlanner, num_complex::{Complex, ComplexFloat}};
 
 
-pub fn fft(samples: &Vec<i16>) -> Vec<i16> {
-    let mut complex_samples = samples.iter().map(|x| Complex::<i16> {re: *x, im: 0}).collect::<Vec<Complex<i16>>>();
+pub fn fft(samples: &Vec<i16>) -> Vec<f64> {
+    let mut complex_samples = samples.iter().map(|x| Complex::<f64> {re: *x as f64, im: 0.0}).collect::<Vec<Complex<f64>>>();
     let fft = FftPlanner::new().plan_fft_forward(complex_samples.len());
     fft.process(&mut complex_samples);
     drop(fft); 
-    return complex_samples.iter().map(|c| c.re).collect::<Vec<i16>>()
+    return complex_samples.iter().map(|c| c.abs()).collect::<Vec<f64>>()
 }

@@ -1,11 +1,33 @@
-use std::{sync::mpsc::{TryRecvError, channel}, thread::{self}};
+use std::{sync::mpsc::{Receiver, TryRecvError, channel}, thread::{self, JoinHandle}};
 
-use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, channel_plot, data::x_formatter::{DecimalFormatter, XFormatter}, run_liveplot};
+use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, PlotSink, channel_plot, data::x_formatter::{DecimalFormatter, XFormatter}, run_liveplot};
 
-use crate::pico::pico_new;
+use crate::{data_source::DataSource, pico::{MockPicoRx, pico_new}};
 
 mod signal_processing;
 mod pico;
+mod data_source;
+
+fn start_collector(data_source: Box<dyn DataSource>, done: Receiver<()>, sink: PlotSink, sample_rate: usize) -> JoinHandle<()> {
+    thread::spawn(move || {
+        let trace = sink.create_trace("Pico Signal", None);
+        let mut buf = Vec::with_capacity(sample_rate as usize);
+        while let Err(TryRecvError::Empty) = done.try_recv() {
+            let v = data_source.receive();
+            if v.is_none() { continue; }
+            let v = v.unwrap();
+            
+            for s in v {
+                buf.push(s);
+                if buf.len() == sample_rate as usize {
+                    let fft = signal_processing::fft(&buf);
+                    for (f, a) in fft.iter().enumerate() { sink.send_point(&trace, PlotPoint { x: f as f64, y: *a }).unwrap(); }
+                    buf.clear();
+                }
+            }
+        }
+    })
+}
 
 fn main() {
     let (sink, rx) = channel_plot();
@@ -21,27 +43,9 @@ fn main() {
         1000
     };
     let (ptx, prx) = pico_new(sample_rate, plot_done_rx_0);
+    let mockprx = MockPicoRx { sample_rate: sample_rate as usize };
 
-    let t = thread::spawn(move || {
-        let trace = sink.create_trace("Pico Signal", None);
-        let mut buf = Vec::with_capacity(sample_rate as usize);
-        while let Err(TryRecvError::Empty) = plot_done_rx_1.try_recv() {
-            let v = prx.receive();
-            if v.is_none() { continue; }
-            let v = v.unwrap();
-            
-            for s in v {
-                buf.push(s);
-                if buf.len() == sample_rate as usize {
-                    println!("update");
-                    let fft = signal_processing::fft(&buf);
-                    print!("{s} ");
-                    for (f, a) in fft.iter().enumerate() { sink.send_point(&trace, PlotPoint { x: f as f64, y: *a as f64 }).unwrap(); }
-                    buf.clear();
-                }
-            }
-        }
-    });
+    let t = start_collector(Box::new(mockprx), plot_done_rx_1, sink, sample_rate as usize);
 
     let mut config = LivePlotConfig::default();
     config.time_window_secs = sample_rate as f64;
@@ -52,6 +56,7 @@ fn main() {
     };
     config.max_points = sample_rate as usize;
     config.headline = Some("Basic plotting idek".to_string());
+    println!("Starting plotter...");
     run_liveplot(rx, config).unwrap();
 
     plot_done_tx_0.send(()).unwrap();

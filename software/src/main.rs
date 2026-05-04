@@ -41,15 +41,6 @@ fn start_collector(parent: Pico, data_source: Box<dyn DataSource>, done: Receive
 }
 
 fn main() {
-    let pico = Pico::new();
-    let (tx, rx) = channel();
-    let awg = PicoAWG::new(&pico, rx);
-    tx.send(1000.0);
-    sleep(Duration::from_secs(10));
-    drop(tx);
-    awg.join();
-    
-    /* 
     let (sink, rx) = channel_plot();
     let (plot_done_tx_0, plot_done_rx_0) = channel();
     let (plot_done_tx_1, plot_done_rx_1) = channel();
@@ -86,5 +77,4 @@ fn main() {
     let _ = plot_done_tx_1.send(());
     ptx.join();
     t.join().unwrap();
-    */
 }

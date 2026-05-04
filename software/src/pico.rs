@@ -155,18 +155,15 @@ impl PicoAWG {
                 let t = generate_wave(pf);
                 buf.copy_from_slice(t.0.as_slice()); let delta = t.1;
                 // println!("{raw_handle}\t0\t{}\t{delta}\t{delta}\t0\t0\tptr\t{}\t{enPS2000SweepType_PS2000_UP}\t0", 2e6, buf.len() as i32);
-                // let result = ps2000_set_sig_gen_arbitrary(
-                //     raw_handle, 
-                //     0, 
-                //     2e6 as u32, 
-                //     delta, delta, 
-                //     0, 0, 
-                //     buf.as_mut_ptr(), buf.len() as i32, 
-                //     enPS2000SweepType_PS2000_UP, 0
-                // );
-                
-                pico_awg(raw_handle);
-                // println!("{:?}, {}", buf.as_mut_ptr(), buf[buf.len() / 2]);
+                let _ = ps2000_set_sig_gen_arbitrary(
+                    raw_handle, 
+                    0, 
+                    2e6 as u32, 
+                    delta, delta, 
+                    0, 0, 
+                    buf.as_mut_ptr(), buf.len() as i32, 
+                    enPS2000SweepType_PS2000_UP, 0
+                );
             }
         }}) }
     }

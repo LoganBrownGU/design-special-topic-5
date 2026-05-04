@@ -15,7 +15,6 @@ fn main() {
     
     println!("cargo::rerun-if-changed=src/pico_lib.c");
     println!("cargo::rerun-if-changed=src/pico_lib.h");
-    let c_o = std::env::var("OUT_DIR").unwrap() + "/pico_lib.o";
     cc::Build::new()
         .file("src/pico_lib.c")
         .compile("pico_lib.a");

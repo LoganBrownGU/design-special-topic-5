@@ -1,11 +1,11 @@
 #include "pico.h"
-#include "ring-buffer.h"
 #include <assert.h>
 #include <libps2000/ps2000.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <threads.h>
 #include <unistd.h>
 
@@ -16,33 +16,13 @@ struct pico_t {
     int16_t handle; 
     int16_t timebase; 
     uint8_t awg_buffer[AWG_BUFFER_SIZE]; 
+    int16_t read_buffer[PICO_BUFFER_SIZE];
 };
 
 void collect_block_immediate(pico *);
 
 int16_t saved_values[PICO_BUFFER_SIZE]; 
 int32_t last_n = 0; 
-
-void get_streaming_buffers (
-    int16_t **overviewBuffers,
-    int16_t overflow,
-    uint32_t triggered_at,
-    int16_t triggered,
-    int16_t auto_stop,
-    uint32_t n_values
-) {
-    (void) overflow;
-    (void) triggered_at;
-    (void) triggered;
-    (void) auto_stop;
-
-    last_n = n_values;
-    printf("%d\n", n_values);
-
-    if (n_values == 0) { return; }
-    
-    memcpy(saved_values, overviewBuffers[0], n_values * sizeof(int16_t));
-}
 
 pico *pico_new(void) {
     
@@ -70,7 +50,7 @@ pico *pico_new(void) {
     return _pico;
 }
 
-int16_t *pico_gather_samples(pico *self, int32_t *n) {
+int16_t *pico_gather_samples(pico *self, uint32_t requested_sample_rate, uint32_t *samples_written, float *actual_sample_rate) {
     int32_t time_indisposed;
 
     int16_t timebase = 0; 
@@ -78,32 +58,37 @@ int16_t *pico_gather_samples(pico *self, int32_t *n) {
     int16_t time_units;
     int32_t max_samples;
     int result = 0;
-    while (result == 0 && time_interval < 1000000000 / PICO_BUFFER_SIZE) {
-        ps2000_get_timebase(self->handle, timebase++, PICO_BUFFER_SIZE, &time_interval, &time_units, 1, &max_samples);
-        if (timebase > 100) {exit(-1);};
+
+    uint32_t n_samples = requested_sample_rate;
+    
+    while (result == 0 && (uint32_t) time_interval < 1000000000 / n_samples) {
+        ps2000_get_timebase(self->handle, ++timebase, n_samples, &time_interval, &time_units, 1, &max_samples);
+        if (timebase > 100) { printf("Failed to select timebase\n"); exit(-1); };
     }
     
-    printf("timebase: %d\n", timebase);
-    ps2000_run_block(self->handle, PICO_BUFFER_SIZE, timebase, 1, &time_indisposed);
+    // printf("timebase: %d\n", timebase);
+    ps2000_run_block(self->handle, n_samples, timebase, 1, &time_indisposed);
     
-    printf("time indisposed: %d ms\n", time_indisposed);
+    fprintf(stderr, "time indisposed: %d ms\n", time_indisposed);
 
-    thrd_sleep(&(struct timespec){ .tv_sec = time_indisposed / 1000 }, NULL);
+    // thrd_sleep(&(struct timespec){ .tv_sec = time_indisposed / 1000 }, NULL);
     while (!ps2000_ready(self->handle)) { 
         thrd_sleep(&(struct timespec){ .tv_nsec = 1000000 }, NULL);
     }
 
-    int16_t overflow;
-    ps2000_get_values(self->handle, saved_values, NULL, NULL, NULL, &overflow, PICO_BUFFER_SIZE);
-    
-    // while (!ps2000_get_streaming_last_values(self->handle, &get_streaming_buffers);
-
-
-    
+    int16_t *sbuf = (int16_t *) malloc(sizeof(int16_t) * n_samples);
+    int32_t *tbuf = (int32_t *) malloc(sizeof(int32_t) * n_samples);
+    ps2000_get_times_and_values(self->handle, tbuf, sbuf, NULL, NULL, NULL, 0, time_units, n_samples);
+    fprintf(stderr, "maxsamples: %d\n", max_samples);
+    fprintf(stderr, "n_samples: %d\n", n_samples);
     ps2000_stop(self->handle);
 
-    *n = last_n;
-    return saved_values;
+    *samples_written = n_samples;
+    *actual_sample_rate =  (n_samples * 1e9) / (tbuf[n_samples - 1] - tbuf[0]);
+
+    free(tbuf);
+
+    return sbuf;
 }
 
 void pico_destroy(pico **self_ptr) {

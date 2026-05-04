@@ -3,6 +3,7 @@
 #include "pico.h"
 #include "ring-buffer.h"
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -20,8 +21,16 @@ void *graph_render_thread(void *_) { (void) _;
 int main(void) {
 
     pico *p = pico_new();
-    pico_awg(p);
-    sleep(10);
+    uint32_t n; float fs;
+    int16_t *buf = pico_gather_samples(p, 1000, &n, &fs);
+
+    for (size_t i = 0; i < n; i++) { printf("%f %d\n", (double)buf[i] / 1e9 , buf[i+n]); }
+    printf("\n");
+    fprintf(stderr, "actual fs: %f", fs);
+    free(buf);
+        
+    // pico_awg(p);
+    // sleep(10);
     /* 
     pthread_t t; 
     pthread_create(&t, NULL, graph_render_thread, NULL);

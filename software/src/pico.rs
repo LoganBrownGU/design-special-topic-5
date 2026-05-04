@@ -1,3 +1,6 @@
+#![allow(non_upper_case_globals)]
+#![allow(non_camel_case_types)]
+#![allow(non_snake_case)]
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
@@ -24,6 +27,7 @@ impl Pico {
             .open().expect("Failed to open Picoscope.");
 
         let handle = device.handle.lock().unwrap();
+        println!("raw handle: {handle}");
         Pico { device, raw_handle: handle }
     }
     
@@ -121,36 +125,48 @@ pub struct PicoAWG {
     handle: JoinHandle<()>
 }
 
-const DELTA_PHASE: f64 = 1.0;
 const AWG_BUFFER_SIZE: f64 = 4096.0;
-const DDS_FREQUENCY: f64 = 48e6;
-const DDS_PERIOD: f64 = 1.0 / DDS_FREQUENCY;
-const PHASE_ACC_SIZE: f64 = 2u64.pow(32) as f64;
+const DDS_FREQUENCY:   f64 = 48e6;
+const PHASE_ACC_SIZE:  f64 = 2u64.pow(32) as f64;
 
-fn generate_wave(pf: PulseFrequency) -> Vec<u8> {
-    let awg_buf_size = (DDS_FREQUENCY /  pf).floor() as usize;
-    
-    let mut awg_buf = (0..awg_buf_size).map(|_| 0).collect::<Vec<u8>>();
-    let pulse_width = (50e-6 / DDS_PERIOD).round() as usize;
-    println!("awg size: {awg_buf_size} {pf}");
-    let pulse_start_idx = awg_buf_size / 2 - pulse_width / 2;
-    let pulse_end_idx = awg_buf_size / 2 + pulse_width / 2;
+fn generate_wave(pf: PulseFrequency) -> (Vec<u8>, u32) {
+   
+    let delta = (PHASE_ACC_SIZE * pf) / DDS_FREQUENCY;
 
-    for i in pulse_start_idx..pulse_end_idx {
-        awg_buf[i] = u8::MAX;
-    }
+    let mut awg_buf = vec![0u8; AWG_BUFFER_SIZE as usize];
+
+    let time_per_sample = 1.0 / (pf * AWG_BUFFER_SIZE);
+    let pulse_width = (50e-6 / time_per_sample).max(1.0) as usize;
     
-    awg_buf
+    let pulse_start_idx = AWG_BUFFER_SIZE as usize / 2 - pulse_width / 2;
+    let pulse_end_idx   = AWG_BUFFER_SIZE as usize / 2 + pulse_width / 2;
+
+    for i in pulse_start_idx..pulse_end_idx { awg_buf[i] = u8::MAX / 2; }
+
+    (awg_buf, delta as u32)
 }
 
 impl PicoAWG {
     pub fn new(parent: &Pico, rx: Receiver<PulseFrequency>) -> Self {
-        
         let raw_handle = parent.raw_handle;
         Self { handle: thread::spawn(move || { unsafe {
+            let mut buf = [0u8; AWG_BUFFER_SIZE as usize];
             while let Ok(pf) = rx.recv() {
-                let mut buf = generate_wave(pf);
-                ps2000_set_sig_gen_arbitrary(raw_handle, 0, 3, 0, 0, 0, 0, buf.as_mut_ptr(), buf.len() as i32, 0, 0);
+                let t = generate_wave(pf);
+                buf.copy_from_slice(t.0.as_slice()); let delta = t.1;
+                // println!("{raw_handle}\t0\t{}\t{delta}\t{delta}\t0\t0\tptr\t{}\t{enPS2000SweepType_PS2000_UP}\t0", 2e6, buf.len() as i32);
+                // let result = ps2000_set_sig_gen_arbitrary(
+                //     raw_handle, 
+                //     0, 
+                //     2e6 as u32, 
+                //     delta, delta, 
+                //     0, 0, 
+                //     buf.as_mut_ptr(), buf.len() as i32, 
+                //     enPS2000SweepType_PS2000_UP, 0
+                // );
+                let result = ps2000_set_sig_gen_built_in(raw_handle, 0, 2e6 as u32, enPS2000WaveType_PS2000_SINE, 2000.0, 2000.0, 0.0, 0.0, enPS2000SweepType_PS2000_UPDOWN, 0);
+                // println!("{:?}, {}", buf.as_mut_ptr(), buf[buf.len() / 2]);
+                assert!(result != 0);
             }
         }}) }
     }

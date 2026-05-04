@@ -11,3 +11,4 @@ rustfft = "6.4.1"
 
 [build-dependencies]
 bindgen = "0.71.0"
+cc = "1.0"

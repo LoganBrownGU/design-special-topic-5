@@ -164,9 +164,9 @@ impl PicoAWG {
                 //     buf.as_mut_ptr(), buf.len() as i32, 
                 //     enPS2000SweepType_PS2000_UP, 0
                 // );
-                let result = ps2000_set_sig_gen_built_in(raw_handle, 0, 2e6 as u32, enPS2000WaveType_PS2000_SINE, 2000.0, 2000.0, 0.0, 0.0, enPS2000SweepType_PS2000_UPDOWN, 0);
+                
+                pico_awg(raw_handle);
                 // println!("{:?}, {}", buf.as_mut_ptr(), buf[buf.len() / 2]);
-                assert!(result != 0);
             }
         }}) }
     }

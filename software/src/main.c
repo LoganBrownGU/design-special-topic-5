@@ -19,6 +19,10 @@ void *graph_render_thread(void *_) { (void) _;
 
 int main(void) {
 
+    pico *p = pico_new();
+    pico_awg(p);
+    sleep(10);
+    /* 
     pthread_t t; 
     pthread_create(&t, NULL, graph_render_thread, NULL);
 
@@ -36,9 +40,11 @@ int main(void) {
             points[i].x = (i * GRAPH_SIZE_X) / GRAPH_MAX_POINTS;
         }
     }
+    */
     
     pico_destroy(&p);
-    pthread_join(t, NULL);
+    // pthread_join(t, NULL);
+
     
     return 0;
 }

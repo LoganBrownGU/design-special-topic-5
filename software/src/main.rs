@@ -1,4 +1,4 @@
-use std::{sync::mpsc::{Receiver, TryRecvError, channel}, thread::{self, JoinHandle, sleep}, time::Duration};
+use std::{sync::mpsc::{Receiver, TryRecvError, channel}, thread::{self, JoinHandle}};
 
 use liveplot::{AutoFitConfig, LivePlotConfig, PlotPoint, PlotSink, channel_plot, data::x_formatter::{DecimalFormatter, XFormatter}, run_liveplot};
 use pico_sdk::common::PicoChannel;
@@ -57,7 +57,7 @@ fn main() {
 
     let pico = Pico::new();
     let (ptx, prx) = Pico::open_channel(&pico, sample_rate, plot_done_rx_0, PicoChannel::A);
-    let mockprx = MockPicoRx { sample_rate: sample_rate as usize };
+    // let mockprx = MockPicoRx { sample_rate: sample_rate as usize };
 
     let t = start_collector(pico, Box::new(prx), plot_done_rx_1, sink, sample_rate as usize);
 

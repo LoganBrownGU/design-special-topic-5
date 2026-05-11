@@ -1,5 +1,5 @@
 include <config.scad>
-use <blower-mount.scad>
+use <flue-lower.scad>
 
 module pipe(length) {
     linear_extrude(length) { difference() {
@@ -24,7 +24,11 @@ module horizontal() {
         }
     }
 
-    translate([pipe_outer_radius + bench_mount_length + blower_middle_depth, 0]) rotate([0, -90]) { blower_lower(); blower_middle(); }
+    translate([pipe_outer_radius + bench_mount_length, 0]) rotate([0, 90]) { slide_mount_thread(); }
+    translate([pipe_outer_radius + bench_mount_length - 5, 0]) rotate([0, 90]) { linear_extrude(5) difference() { 
+    	circle(pipe_inner_radius);
+     	circle(blower_inset_radius);
+    }; }
 }
 
 horizontal();

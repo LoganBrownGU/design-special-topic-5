@@ -62,3 +62,6 @@ window_post_height = slide_height + clip_depth;
 thread_size = "M42";
 thread_turns = 2;
 thread_pitch = 4.5;
+
+bench_mount_length = 100;
+bench_mount_height = 25;

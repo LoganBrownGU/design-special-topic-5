@@ -142,7 +142,6 @@ while (( $# > 0 )) ; do
 			;;
 	esac
 done
-echo "dsjfosd"
 output_path=$(realpath $output_path)
 
 
@@ -223,8 +222,9 @@ else
 fi
 
 if [[ $produce_video == "true" ]] ; then 
-	ffmpeg -f image2 -i $output_path/compare%d.jpg unprocessed.mp4
-	ffmpeg -f image2 -i $output_path/diff%d.jpg diff.mp4
+	echo "producing videos..."
+	ffmpeg -loglevel quiet -f image2 -i $output_path/compare%d.jpg unprocessed.mp4
+	ffmpeg -loglevel quiet -f image2 -i $output_path/diff%d.jpg diff.mp4
 fi
 
 

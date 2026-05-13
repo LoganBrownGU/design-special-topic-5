@@ -36,7 +36,7 @@ capture_image() {
 	
 	prepare_for_capture
 	echo "capturing..."
-	gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms
+	gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms 2> /dev/null
 
 	sleep 0.5
 	mount_camera
@@ -54,7 +54,7 @@ capture_image_bulk() {
 	echo "capturing..."
 	for i in $@ ; do 
 		echo $i
-		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms
+		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms 2> /dev/null
 	done
 
 	sleep 0.5
@@ -79,7 +79,7 @@ capture_image_burst() {
 	sleep "$1"
 	gphoto2 --set-config eosremoterelease=7
 
-	sleep 5
+	sleep $(( 3 * $1 ))
 	mount_camera
 	echo "saving..."
 	mv $canon_path/*.JPG .
@@ -128,8 +128,7 @@ while (( $# > 0 )) ; do
 		-b=*)
 			burst="true"
 			burst_for=$(echo "$1" | tr -d '\-b=')
-			echo "burst_for: $burst_for"
-			shift ; shift
+			shift 
 			;;
 
 		-*) 
@@ -138,6 +137,7 @@ while (( $# > 0 )) ; do
 			;;
 	esac
 done
+echo "dsjfosd"
 output_path=$(realpath $output_path)
 
 
@@ -157,7 +157,6 @@ if [[ $clean == "true" ]] ; then
 	rm -r ./$(date --iso-8601=date)* 
 	exit 0 
 fi
-
 
 
 if [[ $output_path != *"/home/"* ]] ; then 
@@ -193,10 +192,9 @@ for i in ${!comparison_imgs[*]} ; do
 	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png" &
 	pids+=($!)
 
-	echo -ne "comparing $n_comparisons images $(( (100 * batch_no) / n_batches ))%\r"
+	echo -ne "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)\r"
         
 	if (( ${#pids[*]} > $nproc )) ; then 
-		# echo "starting processing batch $batch_no of $n_batches"
 		(( batch_no++ ))
 		for pid in $pids ; do 
 			wait $pid
@@ -204,12 +202,15 @@ for i in ${!comparison_imgs[*]} ; do
 		pids=()
 	fi
 done
-# echo "starting processing batch $batch_no of $batch_no"
 echo -e "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)"
 for pid in $pids ; do 
 	wait $pid
 done
 
+if (( n_comparisons > 36 )) ; then
+	echo "too many comparisons, not generating montage."
+	exit 0 
+fi
 width=$(exiftool diff0.png | grep -E "^Image Width" | tr -d "Image Width.*: ")
 tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
 echo "tiling=$tiling"

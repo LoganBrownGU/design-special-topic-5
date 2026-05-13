@@ -29,6 +29,7 @@ capture_image() {
 	echo "removing old images..."
 	rm -f $canon_path/*.JPG
 	rm -f ./*.JPG
+	sleep 1
 	unmount_camera
 
 	echo "capturing..."
@@ -50,6 +51,7 @@ capture_image_bulk() {
 	echo "removing old images..."
 	rm -f $canon_path/*.JPG
 	rm -f ./*.JPG
+	sleep 1
 	unmount_camera
 
 	echo "capturing..."

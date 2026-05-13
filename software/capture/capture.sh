@@ -1,8 +1,15 @@
 #!/usr/bin/env bash 
 
+mountpoint="/media/$(whoami)/canon/"
+
 unmount_camera() {
 	echo "unmounting..."
-	fusermount -u /media/logan/canon/
+
+	if (( $# != 1 )) ; then 
+		fusermount -u /media/logan/canon/
+	else
+		fusermount -u /media/logan/canon/ 2> /dev/null
+	fi
 
 }
 
@@ -15,11 +22,13 @@ mount_camera() {
 capture_image() {
 	path="$1"
 
-	unmount_camera
+	canon_path="$mountpoint/store_00010001/DCIM/100EOSR5/"
+
+	unmount_camera -
 	mount_camera
 	echo "removing old images..."
-	rm /media/logan/canon/store_00010001/DCIM/100EOSR5/*.JPG
-	rm ./*.JPG
+	rm -f $canon_path/*.JPG
+	rm -f ./*.JPG
 	unmount_camera
 
 	echo "capturing..."
@@ -28,26 +37,91 @@ capture_image() {
 	sleep 0.5
 	mount_camera
 	echo "saving..."
-	mv /media/logan/canon/store_00010001/DCIM/100EOSR5/*.JPG .
+	mv $canon_path/*.JPG .
 	img_path="$(ls *.JPG)"
 	mv "$img_path" "$path"
 
 	unmount_camera
 }
 
-if (( $# > 0 )) ; then 
-	echo "saving original..."
-	
-	capture_image "original.jpg"
+n_images="1"
+output_path="./$(date --iso-8601=s)"
+show_diff="true"
+clean="false"
+yes="false"
 
+while (( $# > 0 )) ; do 
+	case $1 in 
+		-n)
+			n_images="$2"
+			shift ; shift
+			;;
+		-o) 
+			output_path="$2"
+			shift ; shift
+			;;
+		-s) 
+			show_diff="$2"
+			shift ; shift
+			;;
+		-c) 
+			clean="true";
+			shift 
+			;; 
+		-y) 
+			yes="true"
+			shift
+			;;
+		-*) 
+			echo "unrecognised argument: $1" > /dev/stderr
+			exit -1
+			;;
+	esac
+done
+output_path=$(realpath $output_path)
+
+
+if [[ $clean == "true" ]] ; then 
+	choice="Y"
+
+	if [[ $yes != "true" ]] ; then 
+		echo "remove all of today's runs? [Y/n]"
+		read choice
+		if [[ $choice == "Y" || $choice == "y" || $choice == "" ]] ; then
+			echo "removing..."
+		else
+			echo "not removing"
+			exit 0 
+		fi
+	fi
+	rm -r ./$(date --iso-8601=date)* 
 	exit 0 
-fi 
+fi
 
 
-capture_image "compare.jpg"
 
-rm -f diff.png
+if [[ $output_path != *"/home/"* ]] ; then 
+	echo "Trying to write outside home directory, exiting for safety."
+	exit -1
+fi
+
+mkdir -p $output_path
+rm -rf $output_path/*
+
+
+capture_image "$output_path/reference.jpg"
+
+
+cd $output_path
+for i in $(seq 0 $(( $n_images - 1)) ) ; do 
+	capture_image "compare$i.jpg"
+done
 
 echo "comparing images..."
-compare -fuzz 20% original.jpg compare.jpg diff.png
-shotwell diff.png
+
+for i in $(seq 0 $(( $n_images - 1)) ) ; do 
+	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png"
+	if [[ $show_diff == "true" ]] ; then 
+		shotwell "diff$i.png" 
+	fi
+done

@@ -36,7 +36,7 @@ capture_image() {
 	
 	prepare_for_capture
 	echo "capturing..."
-	gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms 2> /dev/null
+	gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms > /dev/null
 
 	sleep 0.5
 	mount_camera
@@ -54,7 +54,7 @@ capture_image_bulk() {
 	echo "capturing..."
 	for i in $@ ; do 
 		echo $i
-		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms 2> /dev/null
+		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms > /dev/null
 	done
 
 	sleep 0.5
@@ -79,7 +79,7 @@ capture_image_burst() {
 	sleep "$1"
 	gphoto2 --set-config eosremoterelease=7
 
-	sleep $(( 3 * $1 ))
+	sleep $( echo "3.0 * $1 + 3.0" | bc )
 	mount_camera
 	echo "saving..."
 	mv $canon_path/*.JPG .
@@ -98,6 +98,7 @@ clean="false"
 yes="false"
 burst="false"
 burst_for="1"
+produce_video="false"
 
 while (( $# > 0 )) ; do 
 	case $1 in 
@@ -128,6 +129,10 @@ while (( $# > 0 )) ; do
 		-b=*)
 			burst="true"
 			burst_for=$(echo "$1" | tr -d '\-b=')
+			shift 
+			;;
+		-m) 
+			produce_video="true" 
 			shift 
 			;;
 
@@ -189,7 +194,7 @@ n_comparisons="${#comparison_imgs[*]}"
 batch_no="1"
 n_batches=$(( n_comparisons / nproc ))
 for i in ${!comparison_imgs[*]} ; do
-	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png" &
+	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.jpg" &
 	pids+=($!)
 
 	echo -ne "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)\r"
@@ -207,15 +212,23 @@ for pid in $pids ; do
 	wait $pid
 done
 
-if (( n_comparisons > 36 )) ; then
+if (( n_comparisons < 36 )) ; then
+	width=$(exiftool diff0.jpg | grep -E "^Image Width" | tr -d "Image Width.*: ")
+	tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
+	echo "tiling=$tiling"
+	montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" diff*.jpg montage.jpg
+
+else
 	echo "too many comparisons, not generating montage."
-	exit 0 
 fi
-width=$(exiftool diff0.png | grep -E "^Image Width" | tr -d "Image Width.*: ")
-tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
-echo "tiling=$tiling"
-montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" diff*.png montage.png 
-if [[ $show_diff == "true" && -f montage.png ]] ; then 
-	shotwell montage.png
+
+if [[ $produce_video == "true" ]] ; then 
+	ffmpeg -f image2 -i $output_path/compare%d.jpg unprocessed.mp4
+	ffmpeg -f image2 -i $output_path/diff%d.jpg diff.mp4
+fi
+
+
+if [[ $show_diff == "true" && -f montage.jpg ]] ; then 
+	shotwell montage.jpg
 fi
 

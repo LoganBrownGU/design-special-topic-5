@@ -1,6 +1,7 @@
 #!/usr/bin/env bash 
 
 mountpoint="/media/$(whoami)/canon/"
+canon_path="$mountpoint/store_00010001/DCIM/100EOSR5/"
 
 unmount_camera() {
 	echo "unmounting..."
@@ -22,7 +23,6 @@ mount_camera() {
 capture_image() {
 	path="$1"
 
-	canon_path="$mountpoint/store_00010001/DCIM/100EOSR5/"
 
 	unmount_camera -
 	mount_camera
@@ -40,6 +40,32 @@ capture_image() {
 	mv $canon_path/*.JPG .
 	img_path="$(ls *.JPG)"
 	mv "$img_path" "$path"
+
+	unmount_camera
+}
+
+capture_image_bulk() {
+	unmount_camera -
+	mount_camera
+	echo "removing old images..."
+	rm -f $canon_path/*.JPG
+	rm -f ./*.JPG
+	unmount_camera
+
+	echo "capturing..."
+
+	for _ in $@ ; do 
+		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms
+	done
+
+	sleep 0.5
+	mount_camera
+	echo "saving..."
+	mv $canon_path/*.JPG .
+	img_paths=(*.JPG)
+	for f in ${!img_paths} ; do 
+		echo ${img_paths[i]} ${!i}
+	done
 
 	unmount_camera
 }

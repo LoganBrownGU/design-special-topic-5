@@ -92,7 +92,7 @@ capture_image_burst() {
 }
 
 n_images="1"
-output_path="./$(date --iso-8601=s)"
+output_path="./$(date "+%F__%H-%M-%S")"
 show_diff="true"
 clean="false"
 yes="false"
@@ -158,7 +158,7 @@ if [[ $clean == "true" ]] ; then
 			exit 0 
 		fi
 	fi
-	rm -r ./$(date --iso-8601=date)* 
+	rm -r ./$(date "+%F")* 
 	exit 0 
 fi
 

@@ -152,13 +152,22 @@ capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "comp
 
 echo "comparing images..."
 pids=()
+nproc=$(nproc)
 for i in $(seq 0 $(( $n_images - 1)) ) ; do 
 	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png" &
 	pids="$pids $!"
+
+	if (( ${!pids[*]} > $nproc )) ; then 
+		for pid in $pids ; do 
+			wait $pid
+		done
+		pids=()
+	fi
 done
 for pid in $pids ; do 
 	wait $pid
 done
+
 width=$(exiftool diff0.png | grep -E "^Image Width" | tr -d "Image Width.*: ")
 montage -tile 3x -geometry "$width"x+20+20 -background "#000000" diff*.png montage.png 
 if [[ $show_diff == "true" ]] ; then 

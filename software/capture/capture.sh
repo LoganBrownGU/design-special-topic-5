@@ -20,10 +20,7 @@ mount_camera() {
 
 }
 
-capture_image() {
-	path="$1"
-
-
+prepare_for_capture() {
 	unmount_camera -
 	mount_camera
 	echo "removing old images..."
@@ -32,6 +29,12 @@ capture_image() {
 	sleep 1
 	unmount_camera
 
+}
+
+capture_image() {
+	path="$1"
+	
+	prepare_for_capture
 	echo "capturing..."
 	gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms
 
@@ -46,16 +49,9 @@ capture_image() {
 }
 
 capture_image_bulk() {
-	unmount_camera -
-	mount_camera
-	echo "removing old images..."
-	rm -f $canon_path/*.JPG
-	rm -f ./*.JPG
-	sleep 1
-	unmount_camera
 
+	prepare_for_capture
 	echo "capturing..."
-
 	for i in $@ ; do 
 		echo $i
 		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms
@@ -75,11 +71,33 @@ capture_image_bulk() {
 	unmount_camera
 }
 
+capture_image_burst() {
+
+	prepare_for_capture
+	echo "capturing..."
+	gphoto2 --set-config eosremoterelease=4
+	sleep "$1"
+	gphoto2 --set-config eosremoterelease=7
+
+	sleep 5
+	mount_camera
+	echo "saving..."
+	mv $canon_path/*.JPG .
+	img_paths=(*.JPG)
+	for i in ${!img_paths[*]} ; do 
+		mv "${img_paths[i]}" "compare$i.jpg"
+	done
+	
+	unmount_camera
+}
+
 n_images="1"
 output_path="./$(date --iso-8601=s)"
 show_diff="true"
 clean="false"
 yes="false"
+burst="false"
+burst_for="1"
 
 while (( $# > 0 )) ; do 
 	case $1 in 
@@ -103,6 +121,17 @@ while (( $# > 0 )) ; do
 			yes="true"
 			shift
 			;;
+		-b) 
+			burst="true"
+			shift
+			;;
+		-b=*)
+			burst="true"
+			burst_for=$(echo "$1" | tr -d '\-b=')
+			echo "burst_for: $burst_for"
+			shift ; shift
+			;;
+
 		-*) 
 			echo "unrecognised argument: $1" > /dev/stderr
 			exit -1
@@ -148,12 +177,17 @@ echo
 
 
 cd $output_path
-capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
+if [[ "$burst" == "true" ]] ; then
+	capture_image_burst "$burst_for"
+else
+	capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
+fi
 
 echo "comparing images..."
 pids=()
 nproc=$(nproc)
-for i in $(seq 0 $(( $n_images - 1)) ) ; do 
+comparison_imgs=(compare*.jpg)
+for i in ${!comparison_imgs[*]} ; do
 	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png" &
 	pids="$pids $!"
 

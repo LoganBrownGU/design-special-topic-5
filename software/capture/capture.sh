@@ -70,6 +70,9 @@ capture_image_bulk() {
 	unmount_camera
 }
 
+capture_image_bulk $(for i in `seq 0 2` ; do echo -ne "img$i.jpg " ; done)
+exit 0 
+
 n_images="1"
 output_path="./$(date --iso-8601=s)"
 show_diff="true"

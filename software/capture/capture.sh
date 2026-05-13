@@ -54,7 +54,8 @@ capture_image_bulk() {
 
 	echo "capturing..."
 
-	for _ in $@ ; do 
+	for i in $@ ; do 
+		echo $i
 		gphoto2 --set-config output=Off --trigger-capture --wait-event=300ms
 	done
 
@@ -63,15 +64,14 @@ capture_image_bulk() {
 	echo "saving..."
 	mv $canon_path/*.JPG .
 	img_paths=(*.JPG)
-	for f in ${!img_paths} ; do 
-		echo ${img_paths[i]} ${!i}
+	for i in ${!img_paths[*]} ; do 
+		arg_index=$(( i + 1))
+		echo "${img_paths[i]} -> ${!arg_index}"
+		mv ${img_paths[i]} ${!arg_index}
 	done
 
 	unmount_camera
 }
-
-capture_image_bulk $(for i in `seq 0 2` ; do echo -ne "img$i.jpg " ; done)
-exit 0 
 
 n_images="1"
 output_path="./$(date --iso-8601=s)"
@@ -142,9 +142,7 @@ capture_image "$output_path/reference.jpg"
 
 
 cd $output_path
-for i in $(seq 0 $(( $n_images - 1)) ) ; do 
-	capture_image "compare$i.jpg"
-done
+capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
 
 echo "comparing images..."
 

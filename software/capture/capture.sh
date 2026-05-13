@@ -183,28 +183,38 @@ else
 	capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
 fi
 
-echo "comparing images..."
 pids=()
 nproc=$(nproc)
 comparison_imgs=(compare*.jpg)
+n_comparisons="${#comparison_imgs[*]}"
+batch_no="1"
+n_batches=$(( n_comparisons / nproc ))
 for i in ${!comparison_imgs[*]} ; do
 	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png" &
-	pids="$pids $!"
+	pids+=($!)
 
-	if (( ${!pids[*]} > $nproc )) ; then 
+	echo -ne "comparing $n_comparisons images $(( (100 * batch_no) / n_batches ))%\r"
+        
+	if (( ${#pids[*]} > $nproc )) ; then 
+		# echo "starting processing batch $batch_no of $n_batches"
+		(( batch_no++ ))
 		for pid in $pids ; do 
 			wait $pid
 		done
 		pids=()
 	fi
 done
+# echo "starting processing batch $batch_no of $batch_no"
+echo -e "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)"
 for pid in $pids ; do 
 	wait $pid
 done
 
 width=$(exiftool diff0.png | grep -E "^Image Width" | tr -d "Image Width.*: ")
-montage -tile 3x -geometry "$width"x+20+20 -background "#000000" diff*.png montage.png 
-if [[ $show_diff == "true" ]] ; then 
+tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
+echo "tiling=$tiling"
+montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" diff*.png montage.png 
+if [[ $show_diff == "true" && -f montage.png ]] ; then 
 	shotwell montage.png
 fi
 

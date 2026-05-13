@@ -140,17 +140,23 @@ mkdir -p $output_path
 rm -rf $output_path/*
 
 
+echo "capturing reference image..."
 capture_image "$output_path/reference.jpg"
+
+read -n 1 -s -r -p "press any key to start capturing comparison images: "
+echo
 
 
 cd $output_path
 capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
 
 echo "comparing images..."
-
 for i in $(seq 0 $(( $n_images - 1)) ) ; do 
 	compare -fuzz 20% reference.jpg "compare$i.jpg" "diff$i.png"
-	if [[ $show_diff == "true" ]] ; then 
-		shotwell "diff$i.png" 
-	fi
 done
+width=$(exiftool diff0.png | grep -E "^Image Width" | tr -d "Image Width.*: ")
+montage -tile 3x -geometry "$width"x+20+20 -background "#000000" diff*.png montage.png 
+if [[ $show_diff == "true" ]] ; then 
+	shotwell montage.png
+fi
+

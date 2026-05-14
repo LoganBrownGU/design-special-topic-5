@@ -3,6 +3,8 @@
 #![allow(non_snake_case)]
 #![allow(unused)]
 
+use std::{error::Error, fmt::Display};
+
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
 pub type PicoFrequency = pico_frequency_t;
@@ -15,6 +17,23 @@ pub struct Pico {
     inner: *mut pico
 }
 
+#[derive(Debug)]
+pub enum PicoError {
+    TimebaseError,
+    ReadError,
+    AwgError,
+}
+
+impl Display for PicoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    } 
+}
+
+impl Error for PicoError {
+    
+}
+
 impl Pico {
     pub fn new() -> Option<Self> {
         let inner = unsafe { pico_new() };
@@ -22,23 +41,23 @@ impl Pico {
         if inner.is_null() { None } else { Some(Self { inner }) }
     }
 
-    pub fn get_fs_and_timebase(&self, fs: PicoFrequency, tolerance: PicoFrequency) -> Option<(PicoFrequency, PicoTimebase)> {
+    pub fn get_fs_and_timebase(&self, fs: PicoFrequency, tolerance: PicoFrequency) -> Result<(PicoFrequency, PicoTimebase), PicoError> {
         let mut actual_fs: PicoFrequency = 0;
         let mut timebase: PicoTimebase = 0;
         
         let result = unsafe { pico_get_fs(self.inner, fs, tolerance, std::ptr::from_mut(&mut actual_fs), std::ptr::from_mut(&mut timebase)) };
         
-        if result == 0 { None } else { Some((actual_fs, timebase)) }
+        if result == 0 { Err(PicoError::TimebaseError) } else { Ok((actual_fs, timebase)) }
     }
 
-    pub fn gather_samples(&self, timebase: PicoTimebase, tbuf: &mut [PicoTime], sbuf: &mut [PicoSample]) -> Result<(), ()> {
+    pub fn gather_samples(&self, timebase: PicoTimebase, tbuf: &mut [PicoTime], sbuf: &mut [PicoSample]) -> Result<(), PicoError> {
         assert!(tbuf.len() == sbuf.len());
         let result = unsafe { pico_gather_samples(self.inner, timebase, tbuf.as_mut_ptr(), sbuf.as_mut_ptr(), tbuf.len()) };
         
-        if result == 0 { Err(()) } else { Ok(()) }
+        if result == 0 { Err(PicoError::ReadError) } else { Ok(()) }
     }
 
-    pub fn generate_wave(&self, fundamental: PicoFrequency, duty_cycle: f64) -> Result<(), ()> {
+    pub fn generate_wave(&self, fundamental: PicoFrequency, duty_cycle: f64) -> Result<(), PicoError> {
 
         let mut buf: Vec<PicoAwgValue> = vec![0 as PicoAwgValue; AWG_BUFFER_SIZE];
         for (i, v) in buf.iter_mut().enumerate() {
@@ -51,7 +70,7 @@ impl Pico {
         
         let result = unsafe { pico_awg(self.inner, fundamental, buf.as_mut_ptr()) };
         
-        return Ok(());
+        if result == 0 { Err(PicoError::AwgError) } else { Ok(()) }
     }
 }
 

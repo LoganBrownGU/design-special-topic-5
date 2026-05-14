@@ -29,7 +29,10 @@ pico *pico_new(void) {
 
 void pico_destroy(pico **self_ptr) {
     pico *self = *self_ptr;
+    
     ps2000_stop(self->handle);
+    ps2000_close_unit(self->handle);
+    
     free(self);
     self = NULL;
 }

@@ -6,7 +6,15 @@ use crate::pico::{Pico, PicoFrequency, PicoSample, PicoTime, PicoTimebase};
 mod signal_processing;
 mod pico;
 
-fn do_frame(pico: &Pico, timebase: PicoTimebase, sink: &PlotSink, fs: PicoFrequency, signal_trace: &Trace, fft_trace: &Trace) -> Result<(), Box<dyn Error>> {
+fn do_frame(
+    pico: &Pico, 
+    timebase: PicoTimebase, 
+    sink: &PlotSink, 
+    fs: PicoFrequency, 
+    signal_trace: &Trace, 
+    fft_trace: &Trace, 
+    last_fundamental: PicoFrequency) 
+-> Result<PicoFrequency, Box<dyn Error>> {
     let mut tbuf = vec![0 as PicoTime;   fs as usize];
     let mut sbuf = vec![0 as PicoSample; fs as usize];
     pico.gather_samples(timebase, &mut tbuf, &mut sbuf)?;
@@ -20,14 +28,17 @@ fn do_frame(pico: &Pico, timebase: PicoTimebase, sink: &PlotSink, fs: PicoFreque
     let fft = signal_processing::fft(&sbuf);
     let fft = fft[0..fft.len()/2].to_vec();
     let (fundamental, max) = fft.iter().enumerate().fold((0, f64::MIN), |p0, p1| if p0.1 > *p1.1 { p0 } else { (p1.0, *p1.1) });
+    let fundamental = fundamental as PicoFrequency;
     for p in tbuf.iter().zip(&fft).map(|(a, b)| PlotPoint { x: *a as f64 / 1e9, y: *b / max } ) {
         sink.send_point(fft_trace, p)?;
     }
 
     eprint!("fundamental: {fundamental}Hz     \r");
-    pico.generate_wave(fundamental as PicoFrequency, 0.1)?;
+    if fundamental != last_fundamental {
+        pico.generate_wave(fundamental, 0.1)?;
+    }
 
-    Ok(())
+    Ok(fundamental)
 }
 
 fn main() {
@@ -41,7 +52,10 @@ fn main() {
         let (fs, timebase) = pico.get_fs_and_timebase(3000, 500).expect("Unable to select a timebase.");
 
         eprintln!("Gathering samples at {fs}Hz. Timebase = {timebase}.");
-        while let Ok(_) = do_frame(&pico, timebase, &sink, fs, &signal_trace, &fft_trace) {}
+        let mut last_fundamental = 0;
+        while let Ok(fundamental) = do_frame(&pico, timebase, &sink, fs, &signal_trace, &fft_trace, last_fundamental) {
+            last_fundamental = fundamental;
+        }
     });
 
     let config = LivePlotConfig {

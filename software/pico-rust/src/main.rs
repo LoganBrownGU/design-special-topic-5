@@ -7,5 +7,6 @@ mod data_source;
 fn main() {
     let pico = Pico::new().unwrap();
 
-    println!("{:?}", Pico::get_fs_and_buf(1000));
+    let (fs, timebase) = pico.get_fs_and_timebase(10000, 2560).unwrap();
+    println!("{} {}", fs, timebase);
 }

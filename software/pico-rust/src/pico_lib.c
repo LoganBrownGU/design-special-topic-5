@@ -1,5 +1,6 @@
 #include "pico_lib.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define BILLION (1000000000)
@@ -31,23 +32,51 @@ void pico_destroy(pico **self_ptr) {
     self = NULL;
 }
 
-uint16_t pico_get_fs_and_bufsize(const pico *self, pico_frequency_t requested_fs, pico_frequency_t *actual_fs, size_t *bufsize) {
-    int32_t time_interval;
-    pico_frequency_t max_samples = requested_fs; 
-    pico_timebase_t timebase = 0; 
+uint16_t pico_get_fs(
+    const pico *self, 
+    pico_frequency_t  requested_fs, 
+    pico_frequency_t  tolerance, 
+    pico_frequency_t *actual_fs, 
+    pico_timebase_t  *timebase
+) {
+    pico_frequency_t requested_time_interval = BILLION / requested_fs;
+    pico_frequency_t time_interval_max = BILLION / (requested_fs - tolerance); 
+    pico_frequency_t time_interval_min = BILLION / (requested_fs + tolerance); 
+    
+    pico_frequency_t time_interval; 
+    *timebase = 1; 
     pico_time_units_t time_units;
     int result = 0;
 
-    while (result == 0 && time_interval < BILLION) {
-        result = ps2000_get_timebase(self->handle, timebase, max_samples, &time_interval, &time_units, 0, &max_samples);
-        timebase++;
+    if (ps2000_get_timebase(self->handle, *timebase, 0, &time_interval, &time_units, 0, NULL) == 0) { return 0; }
+
+    pico_frequency_t last_valid_time_interval = INT32_MIN;
+    pico_frequency_t last_valid_time_interval_error = INT32_MAX;
+    while (*timebase < PS2000_MAX_TIMEBASE) {
+        result = ps2000_get_timebase(self->handle, *timebase, 0, &time_interval, &time_units, 0, NULL);
+
+        if ( // if time interval is valid
+            time_interval >= time_interval_min && 
+            time_interval <= time_interval_max 
+        ) {
+            pico_frequency_t time_interval_error = requested_time_interval - time_interval;
+            // take abs()
+            time_interval_error = time_interval_error < 0 ? -time_interval_error : time_interval_error;
+
+            // if the time interval error has become worse, stop. 
+            if (time_interval_error > last_valid_time_interval_error) { break; }
+
+            last_valid_time_interval_error = time_interval_error;
+            last_valid_time_interval = time_interval;
+        }
+        
+        (*timebase)++;
     }
 
-    if (result == 0) { return 0; }
+    if (result == 0 || last_valid_time_interval == INT32_MIN) { return 0; }
 
-    *bufsize = max_samples; 
-    *actual_fs = BILLION / time_interval;
-    
+    *actual_fs = BILLION / last_valid_time_interval;
+    *timebase -= 1;
     return 1;
 }
 

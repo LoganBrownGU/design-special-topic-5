@@ -10,20 +10,20 @@ typedef int32_t  pico_frequency_t;
 typedef uint16_t pico_sample_t;
 typedef uint8_t  pico_awg_value_t;
 typedef int16_t  pico_handle_t;
+typedef int16_t  pico_timebase_t;
 
 pico *pico_new(void);
 void  pico_destroy(pico **);
 
 /**
- * Calculates the actual sample frequency that the PicoScope supports closest to the requested frequency,
- * and the size of a buffer required to store a second's worth of data at that frequency. 
+ * Calculates the actual sample frequency that the PicoScope supports closest to the requested frequency. 
  * @param requested_fs: ideal sample frequency to use. 
- * @param actual_fs: pointer to variable in which to store the actual sample frequency that will be used.
- * @param bufsize: pointer to variable in which to store the size of the buffer required for a second's worth 
- *                 of data at `actual_fs`.
- * @return zero if requested sample frequency is invalid (either too small or too large), non-zero otherwise. 
+ * @param tolerance: how close the actual sample frequency should be to `fs`, i.e. within +/- `tolerance` of `fs`.
+ * @param actual_fs: pointer to the actual sample frequency found by this function.
+ * @param timebase: pointer to the timebase corresponding to actual_fs.
+ * @return 0 if unable to find a suitable frequency, non-zero otherwise. 
  */
-uint16_t pico_get_fs_and_bufsize(const pico *self, pico_frequency_t requested_fs, pico_frequency_t *actual_fs, size_t *bufsize);
+uint16_t pico_get_fs(const pico *self, pico_frequency_t requested_fs, pico_frequency_t tolerance, pico_frequency_t *actual_fs, pico_timebase_t *timebase);
 
 /**
  * Gathers a second's worth of samples at `fs`, and places them into `buf`. 

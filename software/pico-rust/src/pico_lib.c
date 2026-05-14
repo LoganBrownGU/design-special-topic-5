@@ -22,7 +22,7 @@ pico *pico_new(void) {
     pico *self = (pico *)malloc(sizeof(pico));
     self->handle = handle;
 
-    ps2000_set_channel(self->handle, PS2000_CHANNEL_A, 1, 1, PS2000_2V);
+    ps2000_set_channel(self->handle, PS2000_CHANNEL_A, 1, 1, PS2000_1V);
 
     return self;
 }
@@ -99,7 +99,6 @@ uint16_t pico_gather_samples(const pico *self, pico_timebase_t timebase, pico_fr
     int32_t no_samples = ps2000_get_times_and_values(self->handle, tbuf, sbuf, NULL, NULL, NULL, &overflow, PS2000_NS, bufsize); 
     if (overflow && 0x01 == 0x01) { fprintf(stderr, "overflow occurred."); return 0; }
     
-    fprintf(stderr, "read successful\n");
     if (no_samples == (int32_t) bufsize) {
         return 1; 
     } else {

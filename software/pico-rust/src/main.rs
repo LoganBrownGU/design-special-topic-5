@@ -14,12 +14,13 @@ fn main() {
 
     let t = thread::spawn(move || {
         let pico = Pico::new().unwrap();
-        let (fs, timebase) = pico.get_fs_and_timebase(1000, 256).expect("Unable to select a timebase.");
+        let (fs, timebase) = pico.get_fs_and_timebase(3000, 500).expect("Unable to select a timebase.");
 
-        eprintln!("Gathering samples at {fs}Hz");
+        eprintln!("Gathering samples at {fs}Hz. Timebase = {timebase}.");
         for _ in 0..100 {
-            let mut tbuf = vec![0 as PicoTime; fs as usize];
-            let mut sbuf = vec![0 as PicoSample; fs as usize];pico.gather_samples(timebase, &mut tbuf, &mut sbuf).expect("Unable to perform read.");
+            let mut tbuf = vec![0 as PicoTime;   fs as usize];
+            let mut sbuf = vec![0 as PicoSample; fs as usize];
+            pico.gather_samples(timebase, &mut tbuf, &mut sbuf).expect("Unable to perform read.");
             
             sink.clear_data(&trace).expect("Unable to clear current data");
             for p in tbuf.iter().zip(sbuf).map(|(a, b)| PlotPoint { x: *a as f64 / 1e9, y: b as f64 } ) {

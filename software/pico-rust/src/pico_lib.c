@@ -54,6 +54,7 @@ uint16_t pico_get_fs(
 
     pico_frequency_t last_valid_time_interval = INT32_MIN;
     pico_frequency_t last_valid_time_interval_error = INT32_MAX;
+    pico_timebase_t  last_valid_timebase = -1;
     while (*timebase < PS2000_MAX_TIMEBASE) {
         result = ps2000_get_timebase(self->handle, *timebase, 0, &time_interval, &time_units, 0, NULL);
 
@@ -70,6 +71,7 @@ uint16_t pico_get_fs(
 
             last_valid_time_interval_error = time_interval_error;
             last_valid_time_interval = time_interval;
+            last_valid_timebase = *timebase;
         }
         
         (*timebase)++;
@@ -78,7 +80,7 @@ uint16_t pico_get_fs(
     if (result == 0 || last_valid_time_interval == INT32_MIN) { return 0; }
 
     *actual_fs = BILLION / last_valid_time_interval;
-    *timebase -= 1;
+    *timebase = last_valid_timebase;
     return 1;
 }
 
@@ -98,5 +100,10 @@ uint16_t pico_gather_samples(const pico *self, pico_timebase_t timebase, pico_fr
     if (overflow && 0x01 == 0x01) { fprintf(stderr, "overflow occurred."); return 0; }
     
     fprintf(stderr, "read successful\n");
-    return no_samples == (int32_t) bufsize ? 1 : 0;
+    if (no_samples == (int32_t) bufsize) {
+        return 1; 
+    } else {
+        fprintf(stderr, "too few samples gathered for the sampling rate: %d vs %lu", no_samples, bufsize);
+        return 0;
+    }
 }

@@ -9,6 +9,7 @@ pub type PicoFrequency = pico_frequency_t;
 pub type PicoTime = pico_frequency_t;
 pub type PicoSample = pico_sample_t;
 pub type PicoTimebase = pico_timebase_t;
+pub type PicoAwgValue = pico_awg_value_t;
 
 pub struct Pico {
     inner: *mut pico
@@ -35,6 +36,22 @@ impl Pico {
         let result = unsafe { pico_gather_samples(self.inner, timebase, tbuf.as_mut_ptr(), sbuf.as_mut_ptr(), tbuf.len()) };
         
         if result == 0 { Err(()) } else { Ok(()) }
+    }
+
+    pub fn generate_wave(&self, fundamental: PicoFrequency, duty_cycle: f64) -> Result<(), ()> {
+
+        let mut buf: Vec<PicoAwgValue> = vec![0 as PicoAwgValue; AWG_BUFFER_SIZE];
+        for (i, v) in buf.iter_mut().enumerate() {
+            *v = if (i as f64) < (AWG_BUFFER_SIZE as f64 * duty_cycle) { 
+                PicoAwgValue::MAX 
+            } else { 
+                PicoAwgValue::MIN 
+            };
+        } 
+        
+        let result = unsafe { pico_awg(self.inner, fundamental, buf.as_mut_ptr()) };
+        
+        return Ok(());
     }
 }
 

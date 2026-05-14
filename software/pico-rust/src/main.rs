@@ -9,6 +9,12 @@ mod pico;
 mod data_source;
 
 fn main() {
+
+    let pico = Pico::new().expect("fauiled to open");
+    pico.generate_wave(100, 0.1).expect("Failed to generate wave");
+    eprintln!("Generated wave.");
+    thread::sleep(Duration::from_secs(10));
+    /* 
     let (sink, rx) = channel_plot();
     let trace = sink.create_trace("signal", Some("something idek"));
 
@@ -38,5 +44,5 @@ fn main() {
     };
     run_liveplot(rx, config).expect("Unable to start plot.");
 
-    t.join().unwrap();
+    t.join().unwrap();*/
 }

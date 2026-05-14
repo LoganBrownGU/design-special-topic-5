@@ -12,6 +12,9 @@ typedef uint8_t pico_awg_value_t;
 typedef int16_t pico_handle_t;
 typedef int16_t pico_timebase_t;
 
+const float  AWG_DDS_FREQ    = 48e6;
+const size_t AWG_BUFFER_SIZE = 4096;
+
 pico *pico_new(void);
 void  pico_destroy(pico **);
 
@@ -36,6 +39,7 @@ uint16_t pico_gather_samples(const pico *self, pico_timebase_t timebase, pico_fr
  * @param buf: the buffer containing the waveform. _Must be exactly AWG_BUFFER_SIZE in size_. 
  * @return zero if unsuccessful, non-zero otherwise. 
  */
-uint16_t pico_awg(pico *self, pico_awg_value_t *buf);
+uint16_t pico_awg(pico *self, pico_frequency_t f, pico_awg_value_t *buf);
+
 
 #endif

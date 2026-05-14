@@ -107,3 +107,9 @@ uint16_t pico_gather_samples(const pico *self, pico_timebase_t timebase, pico_fr
         return 0;
     }
 }
+
+uint16_t pico_awg(pico *self, pico_frequency_t f, pico_awg_value_t *buf) {
+    float delta = ((float) UINT32_MAX + 1.0) * ((float) f) / AWG_DDS_FREQ;
+
+    return ps2000_set_sig_gen_arbitrary(self->handle, 0, 2e6, delta, delta, 0, 0, buf, AWG_BUFFER_SIZE, 0, 0);
+}

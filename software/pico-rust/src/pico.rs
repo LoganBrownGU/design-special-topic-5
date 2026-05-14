@@ -5,9 +5,10 @@
 
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
-type PicoFrequency = pico_frequency_t;
-type PicoSample = pico_sample_t;
-type PicoTimebase = pico_timebase_t;
+pub type PicoFrequency = pico_frequency_t;
+pub type PicoTime = pico_frequency_t;
+pub type PicoSample = pico_sample_t;
+pub type PicoTimebase = pico_timebase_t;
 
 pub struct Pico {
     inner: *mut pico
@@ -29,9 +30,9 @@ impl Pico {
         if result == 0 { None } else { Some((actual_fs, timebase)) }
     }
 
-    pub fn gather_samples(&self, fs: PicoFrequency, buf: &mut [PicoSample]) -> Result<(), ()> {
-        let result = unsafe { pico_gather_samples(self.inner, fs, buf.as_mut_ptr(), buf.len()) };
-        
+    pub fn gather_samples(&self, timebase: PicoTimebase, tbuf: &mut [PicoTime], sbuf: &mut [PicoSample]) -> Result<(), ()> {
+        assert!(tbuf.len() == sbuf.len());
+        let result = unsafe { pico_gather_samples(self.inner, timebase, tbuf.as_mut_ptr(), sbuf.as_mut_ptr(), tbuf.len()) };
         
         if result == 0 { Err(()) } else { Ok(()) }
     }

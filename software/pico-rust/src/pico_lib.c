@@ -1,9 +1,12 @@
 #include "pico_lib.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <threads.h>
 
 #define BILLION (1000000000)
+#define MILLION (1000000)
 
 typedef int16_t pico_timebase_t;
 typedef int16_t pico_time_units_t;
@@ -13,8 +16,6 @@ struct pico_t {
 };
 
 pico *pico_new(void) {
-
-    
     int16_t handle = ps2000_open_unit();
     if (handle < 1) { return NULL; }
     
@@ -28,6 +29,7 @@ pico *pico_new(void) {
 
 void pico_destroy(pico **self_ptr) {
     pico *self = *self_ptr;
+    ps2000_stop(self->handle);
     free(self);
     self = NULL;
 }
@@ -80,7 +82,21 @@ uint16_t pico_get_fs(
     return 1;
 }
 
-uint16_t pico_gather_samples(const pico *self, pico_frequency_t fs, pico_sample_t *buf, size_t bufsize) {
+uint16_t pico_gather_samples(const pico *self, pico_timebase_t timebase, pico_frequency_t *tbuf, pico_sample_t *sbuf, size_t bufsize) {
 
-    return 1;
+    int32_t time_indisposed;
+    int16_t result = ps2000_run_block(self->handle, bufsize, timebase, 0, &time_indisposed);
+    if (result == 0) { fprintf(stderr, "failed to start read\n"); return 0; }
+    
+    thrd_sleep(&(struct timespec){ .tv_nsec = MILLION * time_indisposed / 2  }, NULL);
+    while (!ps2000_ready(self->handle)) { 
+        thrd_sleep(&(struct timespec){ .tv_nsec = MILLION }, NULL);
+    }
+
+    int16_t overflow;
+    int32_t no_samples = ps2000_get_times_and_values(self->handle, tbuf, sbuf, NULL, NULL, NULL, &overflow, PS2000_NS, bufsize); 
+    if (overflow && 0x01 == 0x01) { fprintf(stderr, "overflow occurred."); return 0; }
+    
+    fprintf(stderr, "read successful\n");
+    return no_samples == (int32_t) bufsize ? 1 : 0;
 }

@@ -1,14 +1,10 @@
-use std::{thread, time::Duration};
-
+use std::thread;
 use liveplot::{LivePlotConfig, PlotPoint, channel_plot, run_liveplot};
 
 use crate::{pico::{Pico, PicoFrequency, PicoSample, PicoTime}};
 
 mod signal_processing;
 mod pico;
-mod data_source;
-
-
 
 fn main() {
 

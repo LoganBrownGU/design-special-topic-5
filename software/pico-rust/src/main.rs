@@ -26,7 +26,7 @@ fn do_frame(
     }
 
     let fft = signal_processing::fft(&sbuf);
-    let fft = fft[0..fft.len()/2].to_vec();
+    let fft = fft[20..fft.len()/2].to_vec();
     let (fundamental, max) = fft.iter().enumerate().fold((0, f64::MIN), |p0, p1| if p0.1 > *p1.1 { p0 } else { (p1.0, *p1.1) });
     let fundamental = fundamental as PicoFrequency;
     for p in tbuf.iter().zip(&fft).map(|(a, b)| PlotPoint { x: *a as f64 / 1e9, y: *b / max } ) {
@@ -35,7 +35,7 @@ fn do_frame(
 
     eprint!("fundamental: {fundamental}Hz     \r");
     if fundamental != last_fundamental {
-        pico.generate_wave(fundamental, 0.1)?;
+        pico.generate_wave(fundamental, 0.5)?;
     }
 
     Ok(fundamental)

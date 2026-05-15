@@ -11,7 +11,6 @@ fn do_frame(
     timebase: PicoTimebase, 
     sink: &PlotSink, 
     fs: PicoFrequency, 
-    signal_trace: &Trace, 
     fft_trace: &Trace, 
     last_fundamental: PicoFrequency) 
 -> Result<PicoFrequency, Box<dyn Error>> {
@@ -19,17 +18,14 @@ fn do_frame(
     let mut sbuf = vec![0 as PicoSample; fs as usize];
     pico.gather_samples(timebase, &mut tbuf, &mut sbuf)?;
     
-    sink.clear_data(signal_trace)?;
     sink.clear_data(fft_trace)?;
-    for p in tbuf.iter().zip(&sbuf).map(|(a, b)| PlotPoint { x: *a as f64 / 1e9, y: (*b as f64) / (PicoSample::MAX as f64) } ) {
-        sink.send_point(signal_trace, p)?;
-    }
 
     let fft = signal_processing::fft(&sbuf);
-    let fft = fft[20..fft.len()/2].to_vec();
+    let f_min: PicoFrequency = 20;
+    let fft = fft[(f_min as usize)..fft.len()/2].to_vec();
     let (fundamental, max) = fft.iter().enumerate().fold((0, f64::MIN), |p0, p1| if p0.1 > *p1.1 { p0 } else { (p1.0, *p1.1) });
-    let fundamental = fundamental as PicoFrequency;
-    for p in tbuf.iter().zip(&fft).map(|(a, b)| PlotPoint { x: *a as f64 / 1e9, y: *b / max } ) {
+    let fundamental = fundamental as PicoFrequency + f_min;
+    for p in fft.iter().enumerate().map(|(a, b)| PlotPoint { x: (a + f_min as usize) as f64, y: *b / max } ) {
         sink.send_point(fft_trace, p)?;
     }
 
@@ -42,24 +38,24 @@ fn do_frame(
 }
 
 fn main() {
-
+    let target_fs = 3000;
+    
     let (sink, rx) = channel_plot();
-    let signal_trace = sink.create_trace("signal", Some("something idek"));
     let fft_trace = sink.create_trace("FFT", Some("something idek"));
 
     let t = thread::spawn(move || {
         let pico = Pico::new().unwrap();
-        let (fs, timebase) = pico.get_fs_and_timebase(3000, 500).expect("Unable to select a timebase.");
+        let (fs, timebase) = pico.get_fs_and_timebase(target_fs, 500).expect("Unable to select a timebase.");
 
         eprintln!("Gathering samples at {fs}Hz. Timebase = {timebase}.");
         let mut last_fundamental = 0;
-        while let Ok(fundamental) = do_frame(&pico, timebase, &sink, fs, &signal_trace, &fft_trace, last_fundamental) {
+        while let Ok(fundamental) = do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental) {
             last_fundamental = fundamental;
         }
     });
 
     let config = LivePlotConfig {
-        time_window_secs: 1.0,
+        time_window_secs: target_fs as f64,
         auto_fit: liveplot::AutoFitConfig { auto_fit_to_view: true, keep_max_fit: true },
         max_points: 1e6 as usize,
         y_unit: Some("V".to_string()),

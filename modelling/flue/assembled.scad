@@ -4,7 +4,6 @@ use <blower-mount.scad>
 use <lip.scad>
 use <flue-lower.scad>
 use <flue-middle.scad>
-use <upper.scad>
 use <flue-upper.scad>
 
 flue_lower_offset = blower_inset_depth + blower_middle_depth + blower_upper_depth + thread_pitch * 2.5;

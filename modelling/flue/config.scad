@@ -4,8 +4,8 @@ thread_fn = $preview ? 16 : 128;
 INFTSML = 0.0000000000001;
 
 NOTCH_COUNT = 0;
-NOTCH_WIDTH = 1;
-NOTCH_DEPTH = 1;
+NOTCH_WIDTH = 2;
+NOTCH_DEPTH = 2;
 
 blower_inner_radius = 43.7 / 2;
 blower_lip_width = 13.5;
@@ -19,8 +19,8 @@ blower_upper_depth = 5;
 
 slide_height = 25;
 slide_thickness = 1.4;
-slide_rails_height = 3;
-slide_rails_depth = slide_rails_height / 2;
+slide_rails_depth = 5;
+slide_rails_height = slide_rails_depth * 2;
 slide_rails_width = slide_thickness + 0.6;
 slide_mount_wall_thickness = slide_thickness * 3.5;
 slide_mount_width = 38 + slide_mount_wall_thickness * 2;
@@ -28,7 +28,7 @@ slide_length = slide_mount_width;
 slide_rails_length = slide_length * 1.01;
 clip_depth = 2;
 flue_taper_into_slit = 20; 
-flue_floor_thickness = 1;
+flue_floor_thickness = 5;
 flue_slit_depth = 1;
 flue_slit_offset = flue_slit_depth * 1.5;
 flue_upper_height = 20;

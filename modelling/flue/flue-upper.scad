@@ -1,6 +1,5 @@
 include <config.scad>
 
-use <clip.scad>
 use <hexagon.scad>
 
 module pipe_interface_int() {

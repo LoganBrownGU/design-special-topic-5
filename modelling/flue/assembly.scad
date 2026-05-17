@@ -4,7 +4,6 @@ use <blower-mount.scad>
 use <lip.scad>
 use <flue-lower.scad>
 use <flue-middle.scad>
-use <upper.scad>
 use <flue-upper.scad>
 
 translate([0, 0, -110]) color("red") blower_mount();

@@ -1,8 +1,6 @@
 include <config.scad>
 
 use <threadlib/threadlib.scad> 
-use <clip.scad>
-
 
 module slide_mount_bolt() {
     bolt(thread_size, turns=thread_turns, fn=thread_fn);

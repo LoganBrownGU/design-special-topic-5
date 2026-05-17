@@ -1,7 +1,10 @@
 #!/usr/bin/env bash 
 
-mountpoint="/media/$(whoami)/canon/"
-canon_path="$mountpoint/store_00010001/DCIM/100EOSR5/"
+MOUNTPOINT="/media/$(whoami)/canon/"
+CANON_PATH="$MOUNTPOINT/store_00010001/DCIM/100EOSR5/"
+UNPROCESSED_VID="unprocessed.mkv"
+DIFF_VID="diff.mkv"
+MONTAGE_FILE="montage.jpg"
 
 unmount_camera() {
 	echo "unmounting..."
@@ -24,7 +27,7 @@ prepare_for_capture() {
 	unmount_camera -
 	mount_camera
 	echo "removing old images..."
-	rm -f $canon_path/*.JPG
+	rm -f $CANON_PATH/*.JPG
 	rm -f ./*.JPG
 	sleep 1
 	unmount_camera
@@ -41,7 +44,7 @@ capture_image() {
 	sleep 0.5
 	mount_camera
 	echo "saving..."
-	mv $canon_path/*.JPG .
+	mv $CANON_PATH/*.JPG .
 	img_path="$(ls *.JPG)"
 	mv "$img_path" "$path"
 
@@ -60,7 +63,7 @@ capture_image_bulk() {
 	sleep 0.5
 	mount_camera
 	echo "saving..."
-	mv $canon_path/*.JPG .
+	mv $CANON_PATH/*.JPG .
 	img_paths=(*.JPG)
 	for i in ${!img_paths[*]} ; do 
 		arg_index=$(( i + 1))
@@ -82,7 +85,7 @@ capture_image_burst() {
 	sleep $( echo "3.0 * $1 + 3.0" | bc )
 	mount_camera
 	echo "saving..."
-	mv $canon_path/*.JPG .
+	mv $CANON_PATH/*.JPG .
 	img_paths=(*.JPG)
 	for i in ${!img_paths[*]} ; do 
 		mv "${img_paths[i]}" "compare$i.jpg"
@@ -212,7 +215,8 @@ fi
 
 pids=()
 nproc=$(nproc)
-comparison_imgs=(compare*.jpg)
+comparison_imgs=($output_path/compare*.jpg)
+echo $comparison_imgs
 n_comparisons="${#comparison_imgs[*]}"
 batch_no="1"
 n_batches=$(( n_comparisons / nproc ))
@@ -238,17 +242,19 @@ done
 if (( n_comparisons <= 36 )) ; then
 	width=$(exiftool "$output/diff0.jpg" | grep -E "^Image Width" | tr -d "Image Width.*: ")
 	tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
-	montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" $output_path/diff*.jpg "$output_path/montage.jpg"
+	montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" $output_path/diff*.jpg "$output_path/$MONTAGE_FILE"
 else
 	echo "too many comparisons, not generating montage."
 fi
 
 if [[ $produce_video == "true" ]] ; then 
 	echo "producing videos..."
-	ffmpeg -loglevel quiet -f image2 -i "$output_path/compare%d.jpg" unprocessed.mp4
-	ffmpeg -loglevel quiet -f image2 -i "$output_path/diff%d.jpg"    diff.mp4
-	vlc "$output_path/unprocessed.mp4"
-	vlc "$output_path/diff.mp4"
+	rm -rf "$output_path/$UNPROCESSED_VID"
+	rm -rf "$output_path/$DIFF_VID"   	
+	ffmpeg -f image2 -i $output_path/compare%d.jpg $output_path/$UNPROCESSED_VID || exit -1 
+	ffmpeg -f image2 -i $output_path/diff%d.jpg    $output_path/$DIFF_VID        || exit -1 
+	vlc "$output_path/$UNPROCESSED_VID"
+	vlc "$output_path/$DIFF_VID"
 fi
 
 

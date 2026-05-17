@@ -1,4 +1,4 @@
-use std::{error::Error, sync::mpsc::{SendError, channel}, thread};
+use std::{error::Error, io::stdin, sync::mpsc::{SendError, channel}, thread};
 use liveplot::{LivePlotConfig, PlotCommand, PlotPoint, PlotSink, Trace, channel_plot, run_liveplot};
 
 use crate::pico::{Pico, PicoError, PicoFrequency, PicoSample, PicoTime, PicoTimebase};
@@ -6,14 +6,18 @@ use crate::pico::{Pico, PicoError, PicoFrequency, PicoSample, PicoTime, PicoTime
 mod signal_processing;
 mod pico;
 
+const DEFAULT_F: PicoFrequency = 1000;
+const DUTY_CYCLE: f64 = 0.5;
+
 fn do_frame(
     pico: &Pico, 
     timebase: PicoTimebase, 
     sink: &PlotSink, 
     fs: PicoFrequency, 
     fft_trace: &Trace, 
-    last_fundamental: PicoFrequency) 
--> Result<PicoFrequency, Box<dyn Error>> {
+    last_fundamental: PicoFrequency,
+    do_dynamic_frequency: bool,
+) -> Result<PicoFrequency, Box<dyn Error>> {
     let mut tbuf = vec![0 as PicoTime;   fs as usize];
     let mut sbuf = vec![0 as PicoSample; fs as usize];
     pico.gather_samples(timebase, &mut tbuf, &mut sbuf)?;
@@ -30,8 +34,12 @@ fn do_frame(
     }
 
     eprint!("fundamental: {fundamental}Hz     \r");
-    if fundamental != last_fundamental {
-        pico.generate_wave(fundamental, 0.5)?;
+
+    
+    if fundamental != last_fundamental && do_dynamic_frequency {
+        pico.generate_wave(fundamental, DUTY_CYCLE)?;
+    } else if !do_dynamic_frequency {
+        pico.generate_wave(DEFAULT_F, DUTY_CYCLE)?;
     }
 
     Ok(fundamental)
@@ -43,26 +51,43 @@ fn main() {
     let (sink, rx) = channel_plot();
     let fft_trace = sink.create_trace("FFT", Some("something idek"));
     let (ready_tx, ready_rx) = channel::<()>();
+    let (toggle_tx, toggle_rx) = channel::<()>();
     
-    let t = thread::spawn(move || {
+    let data_gathering = thread::spawn(move || {
         let pico = Pico::new().expect("Failed to open PicoScope. Is it connected?");
         let (fs, timebase) = pico.get_fs_and_timebase(target_fs, 500).expect("Unable to select a timebase.");
 
         eprintln!("Gathering samples at {fs}Hz. Timebase = {timebase}.");
         ready_tx.send(()).unwrap();
         let mut last_fundamental = 0; let mut consecutive_errs = 0;
+        let mut do_dynamic_frequency = true; 
         while consecutive_errs < 5 {
-            match do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental) {
+            match do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental, do_dynamic_frequency) {
                 Err(e) if e.is::<SendError<PlotCommand>>() => { break; }
                 Err(e) if e.is::<PicoError>()              => { eprintln!("PicoScope error occurred: {e}"); consecutive_errs += 1; continue; }
                 Err(e)                                     => { eprintln!("Error occurred: {e}");           consecutive_errs += 1; continue; }
                 Ok(new_fundamental)                        => { last_fundamental = new_fundamental; }
             }
+
+            while let Ok(_) = toggle_rx.try_recv() {
+                do_dynamic_frequency = !do_dynamic_frequency;
+            }
+            
             consecutive_errs = 0;
         }
 
         if consecutive_errs == 5 { eprintln!("Too many consecutive errors. Exiting."); drop(sink); }
     });
+
+    
+    let listener = thread::spawn(move || {
+        loop {
+            let mut line = String::new();
+            let _ = stdin().read_line(&mut line);
+
+            if toggle_tx.send(()).is_err() { break; }
+        }
+    }); 
 
     if ready_rx.recv().is_err() { eprintln!("Failed to start reading from PicoScope."); return; }
     
@@ -76,5 +101,6 @@ fn main() {
     
     run_liveplot(rx, config).expect("Unable to start plot.");
 
-    t.join().unwrap();
+    data_gathering.join().unwrap();
+    listener.join().unwrap();
 }

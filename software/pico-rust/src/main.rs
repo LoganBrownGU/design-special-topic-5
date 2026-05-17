@@ -1,7 +1,7 @@
-use std::{error::Error, thread};
-use liveplot::{LivePlotConfig, PlotPoint, PlotSink, Trace, channel_plot, run_liveplot};
+use std::{error::Error, sync::mpsc::{SendError, channel}, thread};
+use liveplot::{LivePlotConfig, PlotCommand, PlotPoint, PlotSink, Trace, channel_plot, run_liveplot};
 
-use crate::pico::{Pico, PicoFrequency, PicoSample, PicoTime, PicoTimebase};
+use crate::pico::{Pico, PicoError, PicoFrequency, PicoSample, PicoTime, PicoTimebase};
 
 mod signal_processing;
 mod pico;
@@ -42,18 +42,30 @@ fn main() {
     
     let (sink, rx) = channel_plot();
     let fft_trace = sink.create_trace("FFT", Some("something idek"));
-
+    let (ready_tx, ready_rx) = channel::<()>();
+    
     let t = thread::spawn(move || {
-        let pico = Pico::new().unwrap();
+        let pico = Pico::new().expect("Failed to open PicoScope. Is it connected?");
         let (fs, timebase) = pico.get_fs_and_timebase(target_fs, 500).expect("Unable to select a timebase.");
 
         eprintln!("Gathering samples at {fs}Hz. Timebase = {timebase}.");
-        let mut last_fundamental = 0;
-        while let Ok(fundamental) = do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental) {
-            last_fundamental = fundamental;
+        ready_tx.send(()).unwrap();
+        let mut last_fundamental = 0; let mut consecutive_errs = 0;
+        while consecutive_errs < 5 {
+            match do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental) {
+                Err(e) if e.is::<SendError<PlotCommand>>() => { break; }
+                Err(e) if e.is::<PicoError>()              => { eprintln!("PicoScope error occurred: {e}"); consecutive_errs += 1; continue; }
+                Err(e)                                     => { eprintln!("Error occurred: {e}");           consecutive_errs += 1; continue; }
+                Ok(new_fundamental)                        => { last_fundamental = new_fundamental; }
+            }
+            consecutive_errs = 0;
         }
+
+        if consecutive_errs == 5 { eprintln!("Too many consecutive errors. Exiting."); drop(sink); }
     });
 
+    if ready_rx.recv().is_err() { eprintln!("Failed to start reading from PicoScope."); return; }
+    
     let config = LivePlotConfig {
         time_window_secs: target_fs as f64,
         auto_fit: liveplot::AutoFitConfig { auto_fit_to_view: true, keep_max_fit: true },
@@ -61,6 +73,7 @@ fn main() {
         y_unit: Some("V".to_string()),
        ..Default::default() 
     };
+    
     run_liveplot(rx, config).expect("Unable to start plot.");
 
     t.join().unwrap();

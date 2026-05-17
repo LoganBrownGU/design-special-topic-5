@@ -4,6 +4,6 @@ module bench_mount_plug() {
     head = 1;
     length = pipe_outer_radius - pipe_inner_radius + 1;
     cylinder(head, d=8);
-    cylinder(length + head, d=5);
+    cylinder(length + head, d=6);
 }
 bench_mount_plug();

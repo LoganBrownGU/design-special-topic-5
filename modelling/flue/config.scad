@@ -67,6 +67,6 @@ thread_size = "M42";
 thread_turns = 2;
 thread_pitch = 4.5;
 
-bench_mount_length = 100;
+bench_mount_length = 25;
 bench_mount_height = 25;
 connection_depth = 1;

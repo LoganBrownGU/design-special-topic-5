@@ -6,7 +6,7 @@ function triangle_points(side_length) = [
 	[0, side_length / (2 * cos(30))],
 ];
 
-
+mirror_radius = 130 / 2;
 
 pitch = 25;
 
@@ -33,3 +33,5 @@ sleeve_thickness = 5;
 sleeve_height = 15;
 
 inset_depth = 0.5;
+
+target_thickness = 5;

@@ -2,6 +2,8 @@ include <config.scad>
 use <slide.scad>
 use <flue-lower.scad>
 
+INCLUDE_NOTCHES = false; 
+
 module layer_1() {
     linear_extrude(clip_depth) difference() {
         square(slide_mount_width + slide_mount_wall_thickness, true);
@@ -9,14 +11,17 @@ module layer_1() {
     }
 } 
 
-module layer_2() {
+module layer_2() { difference() {
     linear_extrude(slide_rails_depth) difference() {
         square(slide_mount_width + slide_mount_wall_thickness, true);
         scale([+1, 1]) translate(slide_rails_offset) square([slide_rails_width, slide_rails_length], true);
         scale([-1, 1]) translate(slide_rails_offset) square([slide_rails_width, slide_rails_length], true);
-        slit();
+        slit(INCLUDE_NOTCHES);
     }
-}
+     
+    if (INCLUDE_NOTCHES) translate([0, slide_mount_width / 3, slide_rails_depth / 2]) linear_extrude(slide_rails_depth) rotate([0, 0, 180]) text(str("n=", NOTCH_COUNT), font="courier new", size=slide_mount_width / 5, halign="center");
+    else                 translate([0, slide_mount_width / 3, slide_rails_depth / 2]) linear_extrude(slide_rails_depth) rotate([0, 0, 180]) text("n=0",                  font="courier new", size=slide_mount_width / 5, halign="center");
+}}
 
 back_wall_thickness = abs(-(slide_mount_width / 2 + slide_mount_wall_thickness / 2) - (slide_rails_offset.y - slide_rails_length / 2));
 back_wall_offset = [0, slide_rails_offset.y - slide_rails_length / 2 - back_wall_thickness / 2];
@@ -40,3 +45,5 @@ module flue_middle() {
 }
 
 flue_middle();
+
+// translate([50, 50]) slit(true);

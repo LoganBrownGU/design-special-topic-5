@@ -3,6 +3,10 @@ thread_fn = $preview ? 16 : 128;
 
 INFTSML = 0.0000000000001;
 
+NOTCH_COUNT = 0;
+NOTCH_WIDTH = 1;
+NOTCH_DEPTH = 1;
+
 blower_inner_radius = 43.7 / 2;
 blower_lip_width = 13.5;
 blower_lip_depth = 3;

@@ -19,7 +19,7 @@ blower_upper_depth = 5;
 
 slide_height = 25;
 slide_thickness = 1.4;
-slide_rails_depth = 5;
+slide_rails_depth = 2;
 slide_rails_height = slide_rails_depth * 2;
 slide_rails_width = slide_thickness + 0.6;
 slide_mount_wall_thickness = slide_thickness * 3.5;

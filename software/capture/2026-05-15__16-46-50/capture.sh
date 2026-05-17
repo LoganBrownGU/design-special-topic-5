@@ -99,7 +99,6 @@ yes="false"
 burst="false"
 burst_for="1"
 produce_video="false"
-fuzz="30%"
 
 while (( $# > 0 )) ; do 
 	case $1 in 
@@ -136,10 +135,6 @@ while (( $# > 0 )) ; do
 			produce_video="true" 
 			shift 
 			;;
-		-f) 
-			fuzz="$2%"
-			shift ; shift
-			;;
 
 		-*) 
 			echo "unrecognised argument: $1" > /dev/stderr
@@ -147,49 +142,7 @@ while (( $# > 0 )) ; do
 			;;
 	esac
 done
-output_path=$(realpath $output_path)
-
-
-if [[ $clean == "true" ]] ; then 
-	choice="Y"
-
-	if [[ $yes != "true" ]] ; then 
-		echo "remove all of today's runs? [Y/n]"
-		read choice
-		if [[ $choice == "Y" || $choice == "y" || $choice == "" ]] ; then
-			echo "removing..."
-		else
-			echo "not removing"
-			exit 0 
-		fi
-	fi
-	rm -r ./$(date "+%F")* 
-	exit 0 
-fi
-
-
-if [[ $output_path != *"/home/"* ]] ; then 
-	echo "Trying to write outside home directory, exiting for safety."
-	exit -1
-fi
-
-mkdir -p $output_path
-rm -rf $output_path/*
-
-
-echo "capturing reference image..."
-capture_image "$output_path/reference.jpg"
-
-read -n 1 -s -r -p "press any key to start capturing comparison images: "
-echo
-
-
-cd $output_path
-if [[ "$burst" == "true" ]] ; then
-	capture_image_burst "$burst_for"
-else
-	capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
-fi
+i
 
 pids=()
 nproc=$(nproc)
@@ -198,7 +151,7 @@ n_comparisons="${#comparison_imgs[*]}"
 batch_no="1"
 n_batches=$(( n_comparisons / nproc ))
 for i in ${!comparison_imgs[*]} ; do
-	compare -fuzz "$fuzz" reference.jpg "compare$i.jpg" "diff$i.jpg" &
+	compare -fuzz 5% reference.jpg "compare$i.jpg" "diff$i.jpg" &
 	pids+=($!)
 
 	echo -ne "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)\r"
@@ -228,8 +181,8 @@ fi
 
 if [[ $produce_video == "true" ]] ; then 
 	echo "producing videos..."
-	ffmpeg -loglevel quiet -f image2 -i $output_path/compare%d.jpg unprocessed.mp4
-	ffmpeg -loglevel quiet -f image2 -i $output_path/diff%d.jpg diff.mp4
+	ffmpeg -f image2 -i ./compare%d.jpg unprocessed.mp4
+	ffmpeg -f image2 -i ./diff%d.jpg diff.mp4
 fi
 
 

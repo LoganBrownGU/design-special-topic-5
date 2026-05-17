@@ -91,6 +91,40 @@ capture_image_burst() {
 	unmount_camera
 }
 
+capture_images() {
+    rm -rf $output_path/*
+    
+    echo "capturing reference image..."
+    capture_image "$output_path/reference.jpg"
+    
+    read -n 1 -s -r -p "press any key to start capturing comparison images: "
+    echo
+    
+    cd $output_path
+    if [[ "$burst" == "true" ]] ; then
+    	capture_image_burst "$burst_for"
+    else
+    	capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
+    fi
+    cd - > /dev/null
+}
+
+clean() {
+    choice="Y"
+
+	if [[ $1 != "true" ]] ; then 
+		echo "remove all of today's runs? [Y/n]"
+		read choice
+		if [[ $choice == "Y" || $choice == "y" || $choice == "" ]] ; then
+			echo "removing..."
+		else
+			echo "not removing"
+			exit 0 
+		fi
+	fi
+	rm -r ./$(date "+%F")* 
+}
+
 n_images="1"
 output_path="./$(date "+%F__%H-%M-%S")"
 show_diff="true"
@@ -100,6 +134,7 @@ burst="false"
 burst_for="1"
 produce_video="false"
 fuzz="30%"
+reprocess="false"
 
 while (( $# > 0 )) ; do 
 	case $1 in 
@@ -140,6 +175,10 @@ while (( $# > 0 )) ; do
 			fuzz="$2%"
 			shift ; shift
 			;;
+		--reprocess) 
+		    reprocess="true"
+			shift
+			;;
 
 		-*) 
 			echo "unrecognised argument: $1" > /dev/stderr
@@ -149,22 +188,14 @@ while (( $# > 0 )) ; do
 done
 output_path=$(realpath $output_path)
 
-
 if [[ $clean == "true" ]] ; then 
-	choice="Y"
+    clean $yes
+    exit 0
+fi
 
-	if [[ $yes != "true" ]] ; then 
-		echo "remove all of today's runs? [Y/n]"
-		read choice
-		if [[ $choice == "Y" || $choice == "y" || $choice == "" ]] ; then
-			echo "removing..."
-		else
-			echo "not removing"
-			exit 0 
-		fi
-	fi
-	rm -r ./$(date "+%F")* 
-	exit 0 
+if [[ ! -d $output_path && "$reprocess" == "true" ]] ; then 
+    echo "Output directory ($output_path) must exist if reprocessing."
+    exit -1 
 fi
 
 
@@ -174,21 +205,9 @@ if [[ $output_path != *"/home/"* ]] ; then
 fi
 
 mkdir -p $output_path
-rm -rf $output_path/*
 
-
-echo "capturing reference image..."
-capture_image "$output_path/reference.jpg"
-
-read -n 1 -s -r -p "press any key to start capturing comparison images: "
-echo
-
-
-cd $output_path
-if [[ "$burst" == "true" ]] ; then
-	capture_image_burst "$burst_for"
-else
-	capture_image_bulk $(for i in $( seq 0 $(( $n_images - 1)) ) ; do echo -ne "compare$i.jpg " ; done)
+if [[ "$reprocess" == "false" ]] ; then 
+    capture_images 
 fi
 
 pids=()
@@ -198,7 +217,7 @@ n_comparisons="${#comparison_imgs[*]}"
 batch_no="1"
 n_batches=$(( n_comparisons / nproc ))
 for i in ${!comparison_imgs[*]} ; do
-	compare -fuzz "$fuzz" reference.jpg "compare$i.jpg" "diff$i.jpg" &
+	compare -fuzz "$fuzz" $output_path/reference.jpg "$output_path/compare$i.jpg" "$output_path/diff$i.jpg" &
 	pids+=($!)
 
 	echo -ne "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)\r"
@@ -216,24 +235,23 @@ for pid in $pids ; do
 	wait $pid
 done
 
-if (( n_comparisons < 36 )) ; then
-	width=$(exiftool diff0.jpg | grep -E "^Image Width" | tr -d "Image Width.*: ")
+if (( n_comparisons <= 36 )) ; then
+	width=$(exiftool "$output/diff0.jpg" | grep -E "^Image Width" | tr -d "Image Width.*: ")
 	tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
-	echo "tiling=$tiling"
-	montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" diff*.jpg montage.jpg
-
+	montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" $output_path/diff*.jpg "$output_path/montage.jpg"
 else
 	echo "too many comparisons, not generating montage."
 fi
 
 if [[ $produce_video == "true" ]] ; then 
 	echo "producing videos..."
-	ffmpeg -loglevel quiet -f image2 -i $output_path/compare%d.jpg unprocessed.mp4
-	ffmpeg -loglevel quiet -f image2 -i $output_path/diff%d.jpg diff.mp4
+	ffmpeg -loglevel quiet -f image2 -i "$output_path/compare%d.jpg" unprocessed.mp4
+	ffmpeg -loglevel quiet -f image2 -i "$output_path/diff%d.jpg"    diff.mp4
+	vlc "$output_path/unprocessed.mp4"
+	vlc "$output_path/diff.mp4"
 fi
 
 
-if [[ $show_diff == "true" && -f montage.jpg ]] ; then 
-	shotwell montage.jpg
+if [[ $show_diff == "true" && -f "$output_path/montage.jpg" ]] ; then 
+	shotwell "$output_path/montage.jpg"
 fi
-

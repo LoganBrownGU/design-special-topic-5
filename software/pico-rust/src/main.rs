@@ -1,10 +1,11 @@
-use std::{error::Error, io::stdin, sync::mpsc::{SendError, channel}, thread};
+use std::{error::Error, io::stdin, sync::mpsc::{SendError, Sender, channel}, thread, time::{Duration, Instant, SystemTime}};
 use liveplot::{LivePlotConfig, PlotCommand, PlotPoint, PlotSink, Trace, channel_plot, run_liveplot};
 
-use crate::pico::{Pico, PicoError, PicoFrequency, PicoSample, PicoTime, PicoTimebase};
+use crate::{data_logger::{DataLogger, DataPoint}, pico::{Pico, PicoError, PicoFrequency, PicoSample, PicoTime, PicoTimebase}};
 
 mod signal_processing;
 mod pico;
+mod data_logger;
 
 const DEFAULT_F: PicoFrequency = 1000;
 const DUTY_CYCLE: f64 = 0.5;
@@ -15,12 +16,20 @@ fn do_frame(
     sink: &PlotSink, 
     fs: PicoFrequency, 
     fft_trace: &Trace, 
+    data_tx: &Sender<DataPoint>,
     last_fundamental: PicoFrequency,
     do_dynamic_frequency: bool,
 ) -> Result<PicoFrequency, Box<dyn Error>> {
     let mut tbuf = vec![0 as PicoTime;   fs as usize];
     let mut sbuf = vec![0 as PicoSample; fs as usize];
+
+    let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs_f64();
     pico.gather_samples(timebase, &mut tbuf, &mut sbuf)?;
+
+    tbuf.iter().zip(&sbuf).for_each(|(t, s)| {
+        let t_f = *t as f64 * 1e9 + timestamp;
+        data_tx.send(DataPoint(t_f, *s)).expect("Unable to send data point to plotter");
+    });
     
     sink.clear_data(fft_trace)?;
 
@@ -45,12 +54,20 @@ fn do_frame(
 }
 
 fn main() {
+    let mut logger_path = "./sound.dat".to_string();
+    let args = std::env::args().collect::<Vec<String>>();
+    if args.len() == 2 {
+        logger_path = args[1].clone();
+    }
+    
     let target_fs = 3000;
     
     let (sink, rx) = channel_plot();
     let fft_trace = sink.create_trace("FFT", Some("something idek"));
     let (ready_tx, ready_rx) = channel::<()>();
     let (toggle_tx, toggle_rx) = channel::<()>();
+    let (data_tx, data_rx) = channel();
+    let logger = DataLogger::new(data_rx, logger_path, 1e5 as usize).expect("Failed to start logger.");
     
     let data_gathering = thread::spawn(move || {
         let pico = Pico::new().expect("Failed to open PicoScope. Is it connected?");
@@ -61,7 +78,7 @@ fn main() {
         let mut last_fundamental = 0; let mut consecutive_errs = 0;
         let mut do_dynamic_frequency = false; 
         while consecutive_errs < 5 {
-            match do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental, do_dynamic_frequency) {
+            match do_frame(&pico, timebase, &sink, fs, &fft_trace, &data_tx, last_fundamental, do_dynamic_frequency) {
                 Err(e) if e.is::<SendError<PlotCommand>>() => { break; }
                 Err(e) if e.is::<PicoError>()              => { eprintln!("PicoScope error occurred: {e}"); consecutive_errs += 1; continue; }
                 Err(e)                                     => { eprintln!("Error occurred: {e}");           consecutive_errs += 1; continue; }
@@ -76,6 +93,7 @@ fn main() {
         }
 
         if consecutive_errs == 5 { eprintln!("Too many consecutive errors. Exiting."); drop(sink); }
+        logger.stop_logging(data_tx);
     });
 
     
@@ -101,5 +119,6 @@ fn main() {
     run_liveplot(rx, config).expect("Unable to start plot.");
 
     data_gathering.join().unwrap();
+    eprintln!("Press enter to finish.");
     listener.join().unwrap();
 }

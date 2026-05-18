@@ -32,14 +32,13 @@ fn do_frame(
     for p in fft.iter().enumerate().map(|(a, b)| PlotPoint { x: (a + f_min as usize) as f64, y: *b / max } ) {
         sink.send_point(fft_trace, p)?;
     }
-
-    eprint!("fundamental: {fundamental}Hz     \r");
-
-    
+   
     if fundamental != last_fundamental && do_dynamic_frequency {
+        eprint!("fundamental: {fundamental}Hz     \r");
         pico.generate_wave(fundamental, DUTY_CYCLE)?;
     } else if !do_dynamic_frequency {
         pico.generate_wave(DEFAULT_F, DUTY_CYCLE)?;
+        eprint!("static f:    {DEFAULT_F}Hz     \r");
     }
 
     Ok(fundamental)
@@ -60,7 +59,7 @@ fn main() {
         eprintln!("Gathering samples at {fs}Hz. Timebase = {timebase}.");
         ready_tx.send(()).unwrap();
         let mut last_fundamental = 0; let mut consecutive_errs = 0;
-        let mut do_dynamic_frequency = true; 
+        let mut do_dynamic_frequency = false; 
         while consecutive_errs < 5 {
             match do_frame(&pico, timebase, &sink, fs, &fft_trace, last_fundamental, do_dynamic_frequency) {
                 Err(e) if e.is::<SendError<PlotCommand>>() => { break; }

@@ -15,12 +15,10 @@ module assembled() {
 	translate([0, 0, flue_lower_offset]) color("purple") flue_lower();
 	translate([0, 0, flue_middle_offset]) color("orange") flue_middle();
 	translate([0, 0, flue_upper_offset]) color("blue") flue_upper();
-	translate([flue_lip_breadth  / 2, flue_lip_y_offset, flue_upper_offset + 13]) rotate([-90, 90, 0]) color("yellow") lip();
+	translate([flue_lip_breadth  / 2, flue_lip_y_offset, flue_upper_offset + 20]) rotate([-90, 90, 0]) color("yellow") lip();
 
 }
 
-render() intersection () {
-	assembled();
-	translate([0, -50]) cube([100, 100, 1000]);
-	// translate([-50, 0]) cube([100, 100, 1000]);
+projection(cut = true) {
+    rotate([90, 90, 180]) assembled();
 }

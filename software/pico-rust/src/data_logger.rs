@@ -1,4 +1,4 @@
-use std::{fmt::format, fs::File, io::{BufWriter, Seek, Write}, sync::mpsc::{Receiver, Sender}, thread::{self, JoinHandle}, time::SystemTime};
+use std::{fs::File, io::{BufWriter, Write}, sync::mpsc::{Receiver, Sender}, thread::{self, JoinHandle}};
 
 use crate::pico::PicoSample;
 

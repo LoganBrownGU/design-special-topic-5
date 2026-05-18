@@ -1,4 +1,4 @@
-use std::{error::Error, io::stdin, sync::mpsc::{SendError, Sender, channel}, thread, time::{Duration, Instant, SystemTime}};
+use std::{error::Error, io::stdin, sync::mpsc::{SendError, Sender, channel}, thread, time::SystemTime};
 use liveplot::{LivePlotConfig, PlotCommand, PlotPoint, PlotSink, Trace, channel_plot, run_liveplot};
 
 use crate::{data_logger::{DataLogger, DataPoint}, pico::{Pico, PicoError, PicoFrequency, PicoSample, PicoTime, PicoTimebase}};
@@ -28,7 +28,7 @@ fn do_frame(
 
     tbuf.iter().zip(&sbuf).for_each(|(t, s)| {
         let t_f = *t as f64 * 1e9 + timestamp;
-        data_tx.send(DataPoint(t_f, *s)).expect("Unable to send data point to plotter");
+        data_tx.send(DataPoint(t_f, *s)).expect("Unable to send data point to logger.");
     });
     
     sink.clear_data(fft_trace)?;

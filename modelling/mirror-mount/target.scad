@@ -9,25 +9,25 @@ module outer_race(thickness) {
 	}
 }
 
-module target() {
+module spokes(thickness) {
 	angle_offset = 360 / 3;
-	outer_race(target_thickness);
-	difference() {
+	for (angle = [angle_offset:angle_offset:360]) {
+		rotate([0, 0, angle]) translate([mirror_radius_t / 2, 0]) linear_extrude(thickness) square([mirror_radius_t + target_thickness * 2, 70], true);
+	}
+}
+
+module target() {
+	
+	intersection() {
 		outer_race(target_thickness * 2);
-		for (angle = [angle_offset:angle_offset:360]) {
-			rotate([0, 0, angle]) translate([mirror_radius_t, 0]) linear_extrude(target_thickness * 2) square([mirror_radius_t + target_thickness * 3, 70], true);
-		}
+		spokes(target_thickness * 2);
 	}
 
-	
-	linear_extrude(target_thickness) difference() {
-		for (angle = [angle_offset:angle_offset:360]) {
-			rotate([0, 0, angle]) translate([mirror_radius_t/2, 0]) square([mirror_radius_t, target_thickness], true);
-		}
-
-		circle(target_thickness/3);
+	difference() {
+		spokes(target_thickness); 
+		cylinder(10, r=1);  
 	}
-	
+
 	
 }
 

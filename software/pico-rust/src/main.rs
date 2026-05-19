@@ -7,7 +7,7 @@ mod signal_processing;
 mod pico;
 mod data_logger;
 
-const DEFAULT_F: PicoFrequency = 1000;
+const DEFAULT_F: PicoFrequency = 459;
 const DUTY_CYCLE: f64 = 0.5;
 
 fn do_frame(
@@ -23,6 +23,7 @@ fn do_frame(
     let mut tbuf = vec![0 as PicoTime;   fs as usize];
     let mut sbuf = vec![0 as PicoSample; fs as usize];
 
+    let mut fundamental = DEFAULT_F;
     let timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs_f64();
     pico.gather_samples(timebase, &mut tbuf, &mut sbuf)?;
 
@@ -33,23 +34,24 @@ fn do_frame(
     
     sink.clear_data(fft_trace)?;
 
-    let fft = signal_processing::fft(&sbuf);
-    let f_min: PicoFrequency = 20;
-    let fft = fft[(f_min as usize)..fft.len()/2].to_vec();
-    let (fundamental, max) = fft.iter().enumerate().fold((0, f64::MIN), |p0, p1| if p0.1 > *p1.1 { p0 } else { (p1.0, *p1.1) });
-    let fundamental = fundamental as PicoFrequency + f_min;
-    for p in fft.iter().enumerate().map(|(a, b)| PlotPoint { x: (a + f_min as usize) as f64, y: *b / max } ) {
-        sink.send_point(fft_trace, p)?;
+
+
+    if do_dynamic_frequency {
+        let fft = signal_processing::fft(&sbuf);
+        let f_min: PicoFrequency = 20;
+        let fft = fft[(f_min as usize)..fft.len()/2].to_vec();
+        let (new_fundamental, max) = fft.iter().enumerate().fold((0, f64::MIN), |p0, p1| if p0.1 > *p1.1 { p0 } else { (p1.0, *p1.1) });
+        fundamental = new_fundamental as PicoFrequency + f_min;
+        for p in fft.iter().enumerate().map(|(a, b)| PlotPoint { x: (a + f_min as usize) as f64, y: *b / max } ) {
+            sink.send_point(fft_trace, p)?;
+        }
     }
    
-    if fundamental != last_fundamental && do_dynamic_frequency {
-        eprint!("fundamental: {fundamental}Hz     \r");
+    if fundamental != last_fundamental {
         pico.generate_wave(fundamental, DUTY_CYCLE)?;
-    } else if !do_dynamic_frequency {
-        pico.generate_wave(DEFAULT_F, DUTY_CYCLE)?;
-        eprint!("static f:    {DEFAULT_F}Hz     \r");
     }
-
+    
+    eprint!("fundamental: {fundamental}Hz     \r");
     Ok(fundamental)
 }
 

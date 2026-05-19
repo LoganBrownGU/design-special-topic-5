@@ -1,7 +1,7 @@
 #!/usr/bin/env bash 
 
 MOUNTPOINT="/media/$(whoami)/canon/"
-CANON_PATH="$MOUNTPOINT/store_00010001/DCIM/100EOSR5/"
+CANON_PATH="$MOUNTPOINT/store_00010001/DCIM/101EOSR5/"
 UNPROCESSED_VID="unprocessed.mkv"
 DIFF_VID="diff.mkv"
 MONTAGE_FILE="montage.jpg"

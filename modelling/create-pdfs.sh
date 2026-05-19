@@ -19,13 +19,14 @@ export_pdf() {
 		format_args+=("export-pdf/$a")
 	done
 
-	openscad ${format_args[*]} -o $output $input
+openscad ${format_args[*]} -o $output $input
 	echo "openscad ${format_args[*]} -o $output $input"
 	pdfcrop $output $output
 }
 
 
-export_pdf flue/flue-upper-2d.scad flue-upper.pdf ${DEFAULT_ARGS[*]} paper-size=a5 orientation=landscape 
-export_pdf flue/flue-middle-2d.scad flue-middle.pdf ${DEFAULT_ARGS[*]} paper-size=a6 orientation=portrait
+# export_pdf flue/flue-upper-2d.scad flue-upper.pdf ${DEFAULT_ARGS[*]} paper-size=a5 orientation=landscape 
+# export_pdf flue/flue-middle-2d.scad flue-middle.pdf ${DEFAULT_ARGS[*]} paper-size=a6 orientation=portrait
+export_pdf flue/flue-lower-2d.scad flue-lower.pdf ${DEFAULT_ARGS[*]} paper-size=a5 orientation=portrait
 
 

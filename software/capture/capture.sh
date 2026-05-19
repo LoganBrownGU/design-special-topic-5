@@ -261,3 +261,5 @@ fi
 if [[ $show_diff == "true" && -f "$output_path/montage.jpg" ]] ; then 
 	shotwell "$output_path/montage.jpg"
 fi
+
+mv ../pico-rust/*.dat "$output_path"

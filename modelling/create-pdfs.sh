@@ -1,1 +1,28 @@
-#!/usr/bin/env
+#!/usr/bin/env bash 
+
+
+if [[ $1 == "clean" ]] ; then 
+	rm -rf pdfs/*
+	exit 0 
+fi
+
+DEFAULT_ARGS=(show-grid=true show-scale-message=false grid-size=1)
+
+export_pdf() {
+	input=$1
+	output="pdfs/$2"
+	shift ; shift
+
+	format_args=()
+	for a in $@ ; do 
+		format_args+=(-O) 
+		format_args+=("export-pdf/$a")
+	done
+
+	openscad ${format_args[*]} -o $output $input
+}
+
+
+export_pdf flue/flue-upper-2d.scad flue-upper-2d.pdf $DEFAULT_ARGS paper-size=a5 orientation=landscape 
+
+

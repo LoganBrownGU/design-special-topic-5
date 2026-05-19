@@ -128,6 +128,42 @@ clean() {
 	rm -r ./$(date "+%F")* 
 }
 
+do_comparisons() {
+	pids=()
+	nproc=$(nproc)
+	comparison_imgs=($output_path/compare*.jpg)
+	echo $comparison_imgs
+	n_comparisons="${#comparison_imgs[*]}"
+	batch_no="1"
+	n_batches=$(( n_comparisons / nproc ))
+	for i in ${!comparison_imgs[*]} ; do
+		compare -fuzz "$fuzz" $output_path/reference.jpg "$output_path/compare$i.jpg" "$output_path/diff$i.jpg" &
+		pids+=($!)
+
+		echo -ne "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)\r"
+		
+		if (( ${#pids[*]} > $nproc )) ; then 
+			(( batch_no++ ))
+			for pid in $pids ; do 
+				wait $pid
+			done
+			pids=()
+		fi
+	done
+	echo -e "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)"
+	for pid in $pids ; do 
+		wait $pid
+	done
+
+	if (( n_comparisons <= 36 )) ; then
+		width=$(exiftool "$output_path/diff0.jpg" | grep -E "^Image Width" | tr -d "Image Width.*: ")
+		tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
+		montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" $output_path/diff*.jpg "$output_path/$MONTAGE_FILE"
+	else
+		echo "too many comparisons, not generating montage."
+	fi
+}
+
 n_images="1"
 output_path="./$(date "+%F__%H-%M-%S")"
 show_diff="true"
@@ -138,6 +174,7 @@ burst_for="1"
 produce_video="false"
 fuzz="30%"
 reprocess="false"
+compare="true"
 
 while (( $# > 0 )) ; do 
 	case $1 in 
@@ -179,7 +216,11 @@ while (( $# > 0 )) ; do
 			shift ; shift
 			;;
 		--reprocess) 
-		    reprocess="true"
+			reprocess="true"
+			shift
+			;;
+		--no-compare)
+			compare="false"
 			shift
 			;;
 
@@ -210,41 +251,11 @@ fi
 mkdir -p $output_path
 
 if [[ "$reprocess" == "false" ]] ; then 
-    capture_images 
+	capture_images 
 fi
 
-pids=()
-nproc=$(nproc)
-comparison_imgs=($output_path/compare*.jpg)
-echo $comparison_imgs
-n_comparisons="${#comparison_imgs[*]}"
-batch_no="1"
-n_batches=$(( n_comparisons / nproc ))
-for i in ${!comparison_imgs[*]} ; do
-	compare -fuzz "$fuzz" $output_path/reference.jpg "$output_path/compare$i.jpg" "$output_path/diff$i.jpg" &
-	pids+=($!)
-
-	echo -ne "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)\r"
-        
-	if (( ${#pids[*]} > $nproc )) ; then 
-		(( batch_no++ ))
-		for pid in $pids ; do 
-			wait $pid
-		done
-		pids=()
-	fi
-done
-echo -e "comparing $n_comparisons images ($(( (100 * batch_no) / n_batches ))%)"
-for pid in $pids ; do 
-	wait $pid
-done
-
-if (( n_comparisons <= 36 )) ; then
-	width=$(exiftool "$output/diff0.jpg" | grep -E "^Image Width" | tr -d "Image Width.*: ")
-	tiling=$(echo "sqrt($n_comparisons) / 1" | bc)
-	montage -tile "${tiling}x" -geometry "$width"x+20+20 -background "#000000" $output_path/diff*.jpg "$output_path/$MONTAGE_FILE"
-else
-	echo "too many comparisons, not generating montage."
+if [[ "$do_comparisons" == "true" ]] ; then 
+	do_comparisons
 fi
 
 if [[ $produce_video == "true" ]] ; then 
@@ -252,14 +263,17 @@ if [[ $produce_video == "true" ]] ; then
 	rm -rf "$output_path/$UNPROCESSED_VID"
 	rm -rf "$output_path/$DIFF_VID"   	
 	ffmpeg -f image2 -i $output_path/compare%d.jpg $output_path/$UNPROCESSED_VID || exit -1 
-	ffmpeg -f image2 -i $output_path/diff%d.jpg    $output_path/$DIFF_VID        || exit -1 
 	vlc "$output_path/$UNPROCESSED_VID"
-	vlc "$output_path/$DIFF_VID"
+
+	if [[ $do_comparisons == "true" ]] ; then  
+		ffmpeg -f image2 -i $output_path/diff%d.jpg $output_path/$DIFF_VID || exit -1 
+		vlc "$output_path/$DIFF_VID"
+	fi
 fi
 
 
-if [[ $show_diff == "true" && -f "$output_path/montage.jpg" ]] ; then 
-	shotwell "$output_path/montage.jpg"
+if [[ $show_diff == "true" && -f "$output_path/$MONTAGE_FILE" ]] ; then 
+	shotwell "$output_path/$MONTAGE_FILE"
 fi
 
 mv ../pico-rust/*.dat "$output_path"

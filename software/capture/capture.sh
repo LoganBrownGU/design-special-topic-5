@@ -254,7 +254,7 @@ if [[ "$reprocess" == "false" ]] ; then
 	capture_images 
 fi
 
-if [[ "$do_comparisons" == "true" ]] ; then 
+if [[ "$compare" == "true" ]] ; then 
 	do_comparisons
 fi
 
@@ -265,7 +265,7 @@ if [[ $produce_video == "true" ]] ; then
 	ffmpeg -f image2 -i $output_path/compare%d.jpg $output_path/$UNPROCESSED_VID || exit -1 
 	vlc "$output_path/$UNPROCESSED_VID"
 
-	if [[ $do_comparisons == "true" ]] ; then  
+	if [[ "$compare" == "true" ]] ; then  
 		ffmpeg -f image2 -i $output_path/diff%d.jpg $output_path/$DIFF_VID || exit -1 
 		vlc "$output_path/$DIFF_VID"
 	fi

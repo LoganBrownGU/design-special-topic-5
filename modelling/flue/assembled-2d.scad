@@ -19,6 +19,9 @@ module assembled() {
 
 }
 
-projection(cut = true) {
+projection(true) {
     rotate([90, 90, 180]) assembled();
+}
+projection(true) {
+    translate([60, 0]) rotate([90, 0, 180]) assembled();
 }

@@ -19,6 +19,8 @@ module assembled() {
 
 }
 
-projection(cut = true) {
-    rotate([90, 90, 180]) assembled();
+intersection() {
+	cube_size = 1000;
+	translate([0, cube_size/2]) cube([cube_size, cube_size, cube_size], true);
+	assembled();
 }

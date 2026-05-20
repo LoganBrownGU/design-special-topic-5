@@ -2,7 +2,7 @@ include <config.scad>
 use <slide.scad>
 use <flue-lower.scad>
 
-INCLUDE_NOTCHES = false; 
+INCLUDE_NOTCHES = true; 
 
 module layer_1() {
     linear_extrude(clip_depth) difference() {

@@ -3,7 +3,7 @@ thread_fn = $preview ? 16 : 128;
 
 INFTSML = 0.0000000000001;
 
-NOTCH_COUNT = 0;
+NOTCH_COUNT = 6;
 NOTCH_WIDTH = 2;
 NOTCH_DEPTH = 2;
 

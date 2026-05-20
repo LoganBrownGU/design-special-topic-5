@@ -15,12 +15,12 @@ module assembled() {
 	translate([0, 0, flue_lower_offset]) color("purple") flue_lower();
 	translate([0, 0, flue_middle_offset]) color("orange") flue_middle();
 	translate([0, 0, flue_upper_offset]) color("blue") flue_upper();
-	translate([flue_lip_breadth  / 2, flue_lip_y_offset, flue_upper_offset + 20]) rotate([-90, 90, 0]) color("yellow") lip();
+	translate([flue_lip_breadth  / 2, flue_lip_y_offset, flue_upper_offset + 27]) rotate([-90, 90, 0]) color("yellow") lip();
 
 }
 
 intersection() {
 	cube_size = 1000;
-	translate([0, cube_size/2]) cube([cube_size, cube_size, cube_size], true);
+	translate([cube_size/2, 0]) cube([cube_size, cube_size, cube_size], true);
 	assembled();
 }

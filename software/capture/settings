@@ -1,0 +1,30 @@
+/main/actions/autofocusdrive            /main/actions/cancelautofocus           /main/actions/eosmoviemode
+/main/actions/eosremoterelease          /main/actions/eoszoom                   /main/actions/eoszoomposition
+/main/actions/manualfocusdrive          /main/actions/opcode                    /main/actions/popupflash
+/main/actions/syncdatetime              /main/actions/syncdatetimeutc           /main/actions/uilock
+/main/actions/viewfinder                /main/capturesettings/aeb               /main/capturesettings/afmethod
+/main/capturesettings/alomode           /main/capturesettings/aperture          /main/capturesettings/aspectratio
+/main/capturesettings/autoexposuremode  /main/capturesettings/autoexposuremodedial
+/main/capturesettings/bracketmode       /main/capturesettings/continuousaf      /main/capturesettings/drivemode
+/main/capturesettings/exposurecompensation                  /main/capturesettings/focusmode
+/main/capturesettings/highisonr         /main/capturesettings/meteringmode      /main/capturesettings/movieservoaf
+/main/capturesettings/picturestyle      /main/capturesettings/shutterspeed      /main/capturesettings/storageid
+/main/capturesettings/zoomspeed         /main/imgsettings/colorspace            /main/imgsettings/colortemperature
+/main/imgsettings/imageformat           /main/imgsettings/imageformatcf         /main/imgsettings/imageformatsd
+/main/imgsettings/iso                   /main/imgsettings/whitebalance          /main/imgsettings/whitebalanceadjusta
+/main/imgsettings/whitebalanceadjustb   /main/imgsettings/whitebalancexa        /main/imgsettings/whitebalancexb
+/main/other/5001    /main/other/d303    /main/other/d402    /main/other/d406    /main/other/d407
+/main/settings/artist                   /main/settings/autopoweroff             /main/settings/capture
+/main/settings/capturetarget            /main/settings/copyright                /main/settings/customfuncex
+/main/settings/datetime                 /main/settings/datetimeutc              /main/settings/depthoffield
+/main/settings/eventmode                /main/settings/evfmode                  /main/settings/flashcharged
+/main/settings/focusarea                /main/settings/movierecordtarget        /main/settings/nickname
+/main/settings/oneshotrawon             /main/settings/output                   /main/settings/ownername
+/main/settings/remotemode               /main/settings/strobofiring             /main/settings/testolc
+/main/status/availableshots             /main/status/batterylevel               /main/status/cameramodel
+/main/status/deviceversion              /main/status/eosmovieswitch             /main/status/eosserialnumber
+/main/status/lensname                   /main/status/manufacturer               /main/status/mirrordownstatus
+/main/status/mirrorlockstatus           /main/status/model  /main/status/serialnumber
+/main/status/vendorextension
+
+

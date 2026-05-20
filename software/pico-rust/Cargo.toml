@@ -1,0 +1,13 @@
+[package]
+name = "software"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+dasp = "0.11.0"
+liveplot = "2.0.1"
+rustfft = "6.4.1"
+
+[build-dependencies]
+bindgen = "0.71.0"
+cc = "1.0"

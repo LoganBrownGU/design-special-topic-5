@@ -1,3 +1,5 @@
+Makefile in each directory can be used to automatically build `.stl` files for printing.
+
 # `flue/`
 Flue, optical bench mount for flue. 
 

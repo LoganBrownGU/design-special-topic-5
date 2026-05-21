@@ -7,6 +7,6 @@ use <flue-middle.scad>
 
 // flue_middle();
 projection(true) {
-    translate([0, (slide_mount_width+slide_mount_wall_thickness)/2]) flue_middle();     
-    
+    translate([0, 0]) flue_middle();     
+    translate([slide_mount_width, 0]) rotate([0, 90]) flue_middle();
 }

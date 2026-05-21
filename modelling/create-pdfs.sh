@@ -34,8 +34,8 @@ export_pdf flue/flue-lower-2d.scad flue-lower.pdf ${DEFAULT_ARGS[*]}    &
 pids+=($!)
 # export_pdf flue/bench-mount-2d.scad bench-mount.pdf ${DEFAULT_ARGS[*]} &
 # pids+=($!)
-export_pdf mirror-mount/mount-2d.scad mirror-mount.pdf ${DEFAULT_ARGS[*]} & 
-pids+=($!)
+# export_pdf mirror-mount/mount-2d.scad mirror-mount.pdf ${DEFAULT_ARGS[*]} & 
+# pids+=($!)
 
 for pid in ${pids[*]} ; do 
 	wait $pid

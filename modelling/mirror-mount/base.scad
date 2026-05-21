@@ -1,5 +1,4 @@
 
-include <prism-chamfer/prism-chamfer.scad>;
 include <config.scad>
 
 module slide_hole(radius, length, depth) { 

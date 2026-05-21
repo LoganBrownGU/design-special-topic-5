@@ -6,7 +6,7 @@ if [[ $1 == "clean" ]] ; then
 	exit 0 
 fi
 
-DEFAULT_ARGS=(show-grid=true show-scale-message=false grid-size=1)
+DEFAULT_ARGS=(show-grid=true show-scale-message=false grid-size=1 paper-size=a5 orientation=landscape)
 
 export_pdf() {
 	input=$1
@@ -24,10 +24,20 @@ openscad ${format_args[*]} -o $output $input
 	pdfcrop $output $output
 }
 
+pids=()
 
-# export_pdf flue/flue-upper-2d.scad flue-upper.pdf ${DEFAULT_ARGS[*]} paper-size=a5 orientation=landscape 
-# export_pdf flue/flue-middle-2d.scad flue-middle.pdf ${DEFAULT_ARGS[*]} paper-size=a6 orientation=portrait
-# export_pdf flue/flue-lower-2d.scad flue-lower.pdf ${DEFAULT_ARGS[*]} paper-size=a5 orientation=portrait
-# export_pdf flue/bench-mount-2d.scad bench-mount.pdf ${DEFAULT_ARGS[*]} paper-size=a6 orientation=landscape
-export_pdf mirror-mount/mount-2d.scad mirror-mount.pdf ${DEFAULT_ARGS[*]} grid-size=5 paper-size=a3 orientation=portrait
+export_pdf flue/flue-upper-2d.scad flue-upper.pdf ${DEFAULT_ARGS[*]}  &
+pids+=($!)
+export_pdf flue/flue-middle-2d.scad flue-middle.pdf ${DEFAULT_ARGS[*]}  &
+pids+=($!)
+export_pdf flue/flue-lower-2d.scad flue-lower.pdf ${DEFAULT_ARGS[*]}    &
+pids+=($!)
+# export_pdf flue/bench-mount-2d.scad bench-mount.pdf ${DEFAULT_ARGS[*]} &
+# pids+=($!)
+export_pdf mirror-mount/mount-2d.scad mirror-mount.pdf ${DEFAULT_ARGS[*]} & 
+pids+=($!)
+
+for pid in ${pids[*]} ; do 
+	wait $pid
+done
 

@@ -13,7 +13,7 @@ Tested on a PicoScope 2204, but should work on any 2000-series PicoScope.
 cargo build --release
 ```
 
-# Running
+# Usage 
 ```bash
 cargo run --release -- <desired sample rate>
 ```

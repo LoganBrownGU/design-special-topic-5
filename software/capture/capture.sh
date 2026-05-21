@@ -10,16 +10,16 @@ unmount_camera() {
 	echo "unmounting..."
 
 	if (( $# != 1 )) ; then 
-		fusermount -u /media/logan/canon/
+		fusermount -u $MOUNTPOINT 
 	else
-		fusermount -u /media/logan/canon/ 2> /dev/null
+		fusermount -u $MOUNTPOINT 2> /dev/null
 	fi
 
 }
 
 mount_camera() {
 	echo "mounting..."
-	gphotofs /media/logan/canon/ 
+	gphotofs $MOUNTPOINT
 
 }
 

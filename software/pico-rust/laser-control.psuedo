@@ -1,0 +1,35 @@
+CONSTANT DEFAULT_AWG_FREQUENCY = 1000;
+
+THREAD control {
+	UNTIL graph_window IS CLOSED {
+		RECEIVE do_dynamic_frequency FROM THREAD user;
+
+		time_data, amplitude_data = READ picoscope FOR 1 SECOND;
+		LOG TO FILE time_data, amplitude_data;
+		
+		fourier_transform = FFT OF amplitude_data;
+		PLOT fourier_transform;
+
+		max_frequency, max_amplitude = MAX OF fourier_transform;
+		LOG TO STDOUT max_frequency;
+
+		IF do_dynamic_frequency {
+			SET picoscope.awg TO max_frequency;
+		} ELSE {
+			SET picoscope.awg TO DEFAULT_AWG_FREQUENCY;
+		}
+
+
+	}
+}
+
+THREAD user {
+	BOOLEAN do_dynamic_frequency = false;
+
+	UNTIL graph_window IS CLOSED {
+		SEND do_dynamic_frequency TO THREAD control;
+
+		WAIT FOR key.ENTER PRESSED;
+		do_dynamic_frequency = NOT do_dynamic_frequency;
+	}
+}

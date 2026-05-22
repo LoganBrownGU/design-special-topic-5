@@ -26,8 +26,8 @@ def read_file(file):
             
 
 def do_fft(file):
-    notches = file.split("/")[2].split("-")[0]
-    height = file.split("/")[2].split("-")[1].split(".dat")[0]
+    notches = file.split("/")[-1].split("-")[0]
+    height = file.split("/")[-1].split("-")[1].split(".dat")[0]
     if height == "limit": height = "14"
     
     chunks = read_file(file)
@@ -48,7 +48,8 @@ def do_fft(file):
         "title": f"{notches} notches, lip height = {height}mm",
     }
     
-    print(json.dumps(jobj, indent=4))
+    with open(f"json/{file.split("/")[-1]}.json", "+w") as f: 
+        f.write(json.dumps(jobj, indent=4))
     
     
 
@@ -57,4 +58,5 @@ files = []
 for arg in sys.argv[1:]:
     files.append(arg)
 
-do_fft(files[0])
+for f in files:
+    do_fft(f)
